@@ -1,0 +1,41 @@
+{
+  "name": "safari-webextension-types",
+  "version": "0.1.0",
+  "description": "Authoritative TypeScript declarations for Safari WebExtensions, generated directly from WebKit WebIDL interfaces",
+  "author": "Patrick Kettner",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/patrickkettner/safari-webextension-types.git"
+  },
+  "bugs": {
+    "url": "https://github.com/patrickkettner/safari-webextension-types/issues"
+  },
+  "homepage": "https://github.com/patrickkettner/safari-webextension-types#readme",
+  "keywords": [
+    "safari",
+    "webextension",
+    "webextensions",
+    "typescript",
+    "types",
+    "declarations",
+    "webkit",
+    "browser",
+    "wecg"
+  ],
+  "types": "index.d.ts",
+  "files": [
+    "index.d.ts",
+    "LICENSE",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "python3 scripts/generate.py",
+    "generate": "python3 scripts/generate.py",
+    "typecheck": "tsc --project test/tsconfig.json --noEmit",
+    "test": "tsc --project test/tsconfig.json --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0"
+  }
+}
