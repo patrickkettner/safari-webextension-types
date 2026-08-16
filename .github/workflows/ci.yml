@@ -27,11 +27,14 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Regenerate declarations
+        run: npm run build
+
+      - name: Verify the committed declarations are what the generator emits
+        run: git diff --exit-code index.d.ts
+
       - name: Typecheck declarations
         run: npm run typecheck
 
       - name: Run type tests
         run: npm test
-
-      - name: Verify generator builds clean declarations
-        run: npm run build

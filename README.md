@@ -142,6 +142,9 @@ await chrome.storage.local.set({ enabled: true });
 |   2. Maps WebIDL primitives to TypeScript types                        |
 |   3. Resolves callback and Promise return signatures algorithmically   |
 |   4. Emits browser.* and chrome.* namespaces                           |
+|   5. Reconciles: a hand-written signature that matches no parsed       |
+|      member, or a parsed member that produced nothing, fails the build |
+|   6. Re-resolves every citation against the same WebKit revision       |
 +-----------------------------------┬------------------------------------+
                                     |
                                     v
@@ -173,18 +176,42 @@ npm test
 ### Generator CLI Options
 
 ```bash
-# Default: fetch from official WebKit/WebKit main
+# Default: the pinned WebKit/WebKit commit, recorded in the output header
 python3 scripts/generate.py
 
-# Fetch from a specific WebKit PR
+# Generate from a different revision. Use a commit, not a branch: the
+# declarations and the evidence cited for them come from the same revision,
+# and a moving ref lets those two drift apart.
+python3 scripts/generate.py --repo WebKit/WebKit --ref <sha>
+
+# Resolve a WebKit PR to its head commit and generate from that
 python3 scripts/generate.py --pr 71593
 
-# Fetch from a custom repo and branch
-python3 scripts/generate.py --repo WebKit/WebKit --ref some-branch
+# Read sources and citations from a local WebKit checkout instead of github.com
+python3 scripts/generate.py --webkit-checkout /path/to/webkit
 
-# Use a local WebKit checkout
-python3 scripts/generate.py --idl-dir /path/to/webkit/Source/WebKit/WebProcess/Extensions/Interfaces/
+# Parse interfaces from a directory of .idl files. Citations outside that
+# directory still need --webkit-checkout or a reachable revision.
+python3 scripts/generate.py --idl-dir /path/to/Extensions/Interfaces/
+
+# Record where every emitted member came from
+python3 scripts/generate.py --provenance provenance.json
 ```
+
+### What the build refuses to do
+
+The generator cannot emit a member WebKit does not declare. Emission iterates
+the parsed IDL and looks each member up in a table of hand-written signatures,
+so a table entry naming something upstream never had matches nothing and has
+nothing to emit. Three checks turn that into a failure rather than a silence:
+
+- a signature entry that matched no parsed member fails the build;
+- a parsed member that produced no output and records no reason fails the build;
+- every emitted member cites source that is re-read at build time, and a
+  citation that no longer resolves fails the build.
+
+A claim that something is absent from WebKit is checked the same way, inverted:
+the cited text must still not be there.
 
 ---
 

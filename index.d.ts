@@ -1,6 +1,7 @@
 // Type definitions for Safari WebExtensions
 // Project: https://github.com/patrickkettner/safari-webextension-types
 // Definitions generated directly from WebKit WebIDL declarations
+// Source: WebKit/WebKit@0136fa2b7cf669ab6bc8e715727e6a78bf5f24ba
 //
 // Generated automatically by safari-webextension-types generator.
 // Do not edit directly.
@@ -12,7 +13,6 @@ declare namespace browser {
             addListener(callback: T): void;
             removeListener(callback: T): void;
             hasListener(callback: T): boolean;
-            hasListeners(): boolean;
         }
         export interface WebRequestEvent<T extends (...args: never[]) => void> extends Event<T> {
             addListener(callback: T, filter?: browser.WebRequestFilter, extraInfoSpec?: string[]): void;
@@ -33,7 +33,7 @@ declare namespace browser {
     export interface InjectionResult<T = unknown> {
         documentId?: string;
         frameId?: number;
-        result?: T;
+        result: T | null;
         error?: string;
     }
 
@@ -48,7 +48,7 @@ declare namespace browser {
         matchOriginAsFallback?: boolean;
         runAt?: "document_start" | "document_end" | "document_idle";
         cssOrigin?: "author" | "user";
-        world?: "ISOLATED" | "MAIN";
+        world?: "main" | "isolated" | "MAIN" | "ISOLATED";
     }
     export type CSSOrigin = "USER" | "AUTHOR";
     export type CookieSameSiteStatus = "no_restriction" | "lax" | "strict";
@@ -471,49 +471,62 @@ declare namespace browser {
     export namespace runtime {
         export interface Port {
             name: string;
-            disconnect(): void;
+            sender?: browser.MessageSender;
+            error?: Error;
             onDisconnect: events.Event<(port: Port) => void>;
             onMessage: events.Event<(message: unknown, port: Port) => void>;
             postMessage<T = unknown>(message: T): void;
-            sender?: browser.MessageSender;
+            disconnect(): void;
         }
     }
     export type Port = runtime.Port;
 
     export namespace storage {
         export interface StorageArea {
+            onChanged: events.Event<(changes: Record<string, browser.StorageChange>, areaName: string) => void>;
+            QUOTA_BYTES: number;
             get<T = Record<string, unknown>>(callback: (items: T) => void): void;
             get<T = Record<string, unknown>>(keys?: string | string[] | Record<string, unknown> | null): Promise<T>;
             get<T = Record<string, unknown>>(keys: string | string[] | Record<string, unknown> | null, callback: (items: T) => void): void;
+            getKeys(callback: (keys: string[]) => void): void;
+            getKeys(): Promise<string[]>;
+            getBytesInUse(callback: (bytesInUse: number) => void): void;
+            getBytesInUse(keys?: string | string[] | null): Promise<number>;
+            getBytesInUse(keys: string | string[] | null, callback: (bytesInUse: number) => void): void;
             set(items: Record<string, unknown>): Promise<void>;
             set(items: Record<string, unknown>, callback: () => void): void;
             remove(keys: string | string[]): Promise<void>;
             remove(keys: string | string[], callback: () => void): void;
             clear(): Promise<void>;
             clear(callback: () => void): void;
-            getBytesInUse(callback: (bytesInUse: number) => void): void;
-            getBytesInUse(keys?: string | string[] | null): Promise<number>;
-            getBytesInUse(keys: string | string[] | null, callback: (bytesInUse: number) => void): void;
+            setAccessLevel(accessOptions: browser.StorageAccessOptions): Promise<void>;
+            setAccessLevel(accessOptions: browser.StorageAccessOptions, callback: () => void): void;
+        }
+        export interface SyncStorageArea extends StorageArea {
+            QUOTA_BYTES_PER_ITEM: number;
+            MAX_ITEMS: number;
+            MAX_WRITE_OPERATIONS_PER_HOUR: number;
+            MAX_WRITE_OPERATIONS_PER_MINUTE: number;
         }
     }
     export type StorageArea = storage.StorageArea;
 
     export namespace devtools {
         export interface InspectedWindow {
-            eval<T = unknown>(expression: string, options?: browser.DevToolsEvalOptions, callback?: (result: T, exceptionInfo: { isError: boolean; code: string; description: string; details: unknown[] }) => void): Promise<T>;
-            reload(reloadOptions?: browser.DevToolsReloadOptions): void;
             tabId: number;
+            /**
+             * @deprecated The callback receives one argument, a two-element array of the result and, on failure, an error object. Prefer the promise. WebKit builds that error object with the literal keys "isExceptionKey" and "valueKey", which are the names of its key constants rather than their values.
+             */
+            eval<T = unknown>(expression: string, options?: browser.DevToolsEvalOptions, callback?: (...args: unknown[]) => void): Promise<T>;
+            reload(reloadOptions?: browser.DevToolsReloadOptions): void;
         }
         export interface Network {
-            getHAR(callback?: (harLog: Record<string, unknown>) => void): Promise<Record<string, unknown>>;
-            onRequestFinished: events.Event<(request: Record<string, unknown>) => void>;
             onNavigated: events.Event<(url: string) => void>;
         }
         export interface Panels {
-            create(title: string, iconPath: string, pagePath: string, callback?: (panel: Record<string, unknown>) => void): void;
-            elements: Record<string, unknown>;
-            sources: Record<string, unknown>;
             themeName: string;
+            onThemeChanged: events.Event<(themeName: string) => void>;
+            create(title: string, iconPath: string, pagePath: string, callback?: (panel: Record<string, unknown>) => void): void;
         }
     }
 
@@ -606,7 +619,10 @@ declare namespace browser {
     }
 
     export namespace cookies {
-        export const onChanged: events.Event<(changeInfo: { cookie: browser.Cookie; removed: boolean; cause: "explicit" | "overwrite" | "expired" | "evicted" | "expired_overwrite" | string }) => void>;
+        /**
+         * @deprecated Safari fires this event with no arguments. WebKit has not implemented changeInfo; see https://webkit.org/b/267514. A listener parameter will be undefined at runtime.
+         */
+        export const onChanged: events.Event<(...args: unknown[]) => void>;
         export function get(details: Record<string, unknown>, callback: (result: browser.Cookie | null) => void): void;
         export function get(details: Record<string, unknown>): Promise<browser.Cookie | null>;
         export function getAll(details: Record<string, unknown>, callback: (result: browser.Cookie[]) => void): void;
@@ -680,7 +696,7 @@ declare namespace browser {
     }
 
     export namespace menus {
-        export const onClicked: events.Event<(info: { menuItemId: number | string; parentMenuItemId?: number | string; mediaType?: string; linkUrl?: string; srcUrl?: string; pageUrl?: string; frameUrl?: string; selectionText?: string; editable: boolean; wasChecked?: boolean; checked?: boolean }, tab?: browser.Tab) => void>;
+        export const onClicked: events.Event<(info: { menuItemId: number | string; parentMenuItemId?: number | string; checked?: boolean; wasChecked?: boolean; selectionText?: string; srcUrl?: string; mediaType?: "audio" | "image" | "video"; linkUrl?: string; linkText?: string; editable?: boolean; frameId?: number; pageUrl?: string; frameUrl?: string }, tab?: browser.Tab) => void>;
         export const ACTION_MENU_TOP_LEVEL_LIMIT: number;
         export function create(createProperties: browser.MenuItemProperties, callback?: () => void): number | string;
         export function update(identifier: number | string, properties: Record<string, unknown>, callback: (result: browser.MenuItemProperties) => void): void;
@@ -692,8 +708,14 @@ declare namespace browser {
     }
 
     export namespace notifications {
-        export const onClicked: events.Event<(notificationId: string) => void>;
-        export const onButtonClicked: events.Event<(notificationId: string, buttonIndex: number) => void>;
+        /**
+         * @deprecated Safari never fires this event. WebKit creates the event object but no code path invokes its listeners.
+         */
+        export const onClicked: events.Event<(...args: unknown[]) => void>;
+        /**
+         * @deprecated Safari never fires this event. WebKit creates the event object but no code path invokes its listeners.
+         */
+        export const onButtonClicked: events.Event<(...args: unknown[]) => void>;
     }
 
     export namespace offscreen {
@@ -719,16 +741,16 @@ declare namespace browser {
     }
 
     export namespace runtime {
-        export const lastError: { message?: string } | undefined;
-        export function getManifest(): Record<string, unknown>;
         export const id: string;
+        export const lastError: Error | undefined;
         export const onConnect: events.Event<(port: browser.runtime.Port) => void>;
         export const onMessage: events.Event<(message: unknown, sender: browser.MessageSender, sendResponse: (response?: unknown) => void) => boolean | void | Promise<unknown>>;
         export const onConnectExternal: events.Event<(port: browser.runtime.Port) => void>;
         export const onMessageExternal: events.Event<(message: unknown, sender: browser.MessageSender, sendResponse: (response?: unknown) => void) => boolean | void | Promise<unknown>>;
         export const onStartup: events.Event<() => void>;
-        export const onInstalled: events.Event<(details: { reason: "install" | "update" | "browser_update" | string; previousVersion?: string; id?: string }) => void>;
+        export const onInstalled: events.Event<(details: { reason: "install" | "update" | "browser_update"; previousVersion?: string }) => void>;
         export function getURL(resourcePath: string): string;
+        export function getManifest(): Record<string, unknown>;
         export function getVersion(): string;
         export function getFrameId(target: browser.MessageSender | globalThis.Window): number;
         export function getDocumentId(target: browser.MessageSender | globalThis.Window): string;
@@ -811,13 +833,13 @@ declare namespace browser {
     export namespace storage {
         export const local: browser.storage.StorageArea;
         export const session: browser.storage.StorageArea;
-        export const sync: browser.storage.StorageArea;
-        export const onChanged: events.Event<(changes: Record<string, { oldValue?: unknown; newValue?: unknown }>, areaName: string) => void>;
+        export const sync: browser.storage.SyncStorageArea;
+        export const onChanged: events.Event<(changes: Record<string, browser.StorageChange>, areaName: string) => void>;
     }
 
     export namespace tabs {
         export const TAB_ID_NONE: number;
-        export const onActivated: events.Event<(activeInfo: { tabId: number; windowId: number }) => void>;
+        export const onActivated: events.Event<(activeInfo: { previousTabId: number; tabId: number; windowId: number }) => void>;
         export const onAttached: events.Event<(tabId: number, attachInfo: { newWindowId: number; newPosition: number }) => void>;
         export const onCreated: events.Event<(tab: browser.Tab) => void>;
         export const onDetached: events.Event<(tabId: number, detachInfo: { oldWindowId: number; oldPosition: number }) => void>;
@@ -825,7 +847,7 @@ declare namespace browser {
         export const onMoved: events.Event<(tabId: number, moveInfo: { windowId: number; fromIndex: number; toIndex: number }) => void>;
         export const onRemoved: events.Event<(tabId: number, removeInfo: { windowId: number; isWindowClosing: boolean }) => void>;
         export const onReplaced: events.Event<(addedTabId: number, removedTabId: number) => void>;
-        export const onUpdated: events.Event<(tabId: number, changeInfo: { status?: "loading" | "complete"; url?: string; pinned?: boolean; audible?: boolean; title?: string; favIconUrl?: string; mutedInfo?: browser.TabMutedInfo }, tab: browser.Tab) => void>;
+        export const onUpdated: events.Event<(tabId: number, changeInfo: browser.Tab, tab: browser.Tab) => void>;
         export function create(properties: Record<string, unknown>, callback: (result: browser.Tab) => void): void;
         export function create(properties: Record<string, unknown>): Promise<browser.Tab>;
         export function query(info: Record<string, unknown>, callback: (result: browser.Tab[]) => void): void;
@@ -923,11 +945,11 @@ declare namespace browser {
     }
 
     export namespace webNavigation {
-        export const onBeforeNavigate: events.Event<(details: browser.WebNavigationGetFrameDetails & { url: string; timeStamp: number; transitionType?: string; transitionQualifiers?: string[]; error?: string }) => void>;
-        export const onCommitted: events.Event<(details: browser.WebNavigationGetFrameDetails & { url: string; timeStamp: number; transitionType?: string; transitionQualifiers?: string[]; error?: string }) => void>;
-        export const onDOMContentLoaded: events.Event<(details: browser.WebNavigationGetFrameDetails & { url: string; timeStamp: number; transitionType?: string; transitionQualifiers?: string[]; error?: string }) => void>;
-        export const onCompleted: events.Event<(details: browser.WebNavigationGetFrameDetails & { url: string; timeStamp: number; transitionType?: string; transitionQualifiers?: string[]; error?: string }) => void>;
-        export const onErrorOccurred: events.Event<(details: browser.WebNavigationGetFrameDetails & { url: string; timeStamp: number; transitionType?: string; transitionQualifiers?: string[]; error?: string }) => void>;
+        export const onBeforeNavigate: events.Event<(details: { url: string; tabId: number; frameId: number; parentFrameId: number; timeStamp: number; documentId?: string }) => void>;
+        export const onCommitted: events.Event<(details: { url: string; tabId: number; frameId: number; parentFrameId: number; timeStamp: number; documentId?: string }) => void>;
+        export const onDOMContentLoaded: events.Event<(details: { url: string; tabId: number; frameId: number; parentFrameId: number; timeStamp: number; documentId?: string }) => void>;
+        export const onCompleted: events.Event<(details: { url: string; tabId: number; frameId: number; parentFrameId: number; timeStamp: number; documentId?: string }) => void>;
+        export const onErrorOccurred: events.Event<(details: { url: string; tabId: number; frameId: number; parentFrameId: number; timeStamp: number; documentId?: string }) => void>;
         export function getFrame(details: browser.WebNavigationGetFrameDetails, callback: (result: browser.WebNavigationGetFrameDetails | null) => void): void;
         export function getFrame(details: browser.WebNavigationGetFrameDetails): Promise<browser.WebNavigationGetFrameDetails | null>;
         export function getAllFrames(details: browser.WebNavigationGetAllFramesDetails, callback: (result: browser.WebNavigationGetFrameDetails[] | null) => void): void;

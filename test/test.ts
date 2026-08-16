@@ -101,12 +101,16 @@ async function testCookies() {
     const stores = await browser.cookies.getAllCookieStores();
     assertType<browser.CookieStore[]>(stores);
 
+    // Safari dispatches this event with no arguments, so a listener may take
+    // them but cannot read through one without narrowing it first.
     browser.cookies.onChanged.addListener((changeInfo) => {
-        const c: browser.Cookie = changeInfo.cookie;
-        const removed: boolean = changeInfo.removed;
-        assertType<browser.Cookie>(c);
-        assertType<boolean>(removed);
+        assertType<unknown>(changeInfo);
+
+        if (changeInfo && typeof changeInfo === "object" && "removed" in changeInfo)
+            assertType<unknown>(changeInfo.removed);
     });
+
+    browser.cookies.onChanged.addListener(() => {});
 }
 
 async function testDeclarativeNetRequest() {
@@ -182,14 +186,21 @@ async function testMenus() {
 }
 
 async function testNotifications() {
-    browser.notifications.onClicked.addListener((notificationId: string) => {
-        assertType<string>(notificationId);
+    // Neither event is ever dispatched, so neither declares a payload. A
+    // listener may still take arguments; it cannot assume what they hold.
+    browser.notifications.onClicked.addListener((notificationId) => {
+        assertType<unknown>(notificationId);
+
+        if (typeof notificationId === "string")
+            assertType<string>(notificationId);
     });
 
-    browser.notifications.onButtonClicked.addListener((notificationId: string, buttonIndex: number) => {
-        assertType<string>(notificationId);
-        assertType<number>(buttonIndex);
+    browser.notifications.onButtonClicked.addListener((notificationId, buttonIndex) => {
+        assertType<unknown>(notificationId);
+        assertType<unknown>(buttonIndex);
     });
+
+    browser.notifications.onClicked.addListener(() => {});
 }
 
 async function testOffscreen() {
@@ -231,6 +242,14 @@ async function testRuntime() {
     const manifest: Record<string, unknown> = browser.runtime.getManifest();
     assertType<Record<string, unknown>>(manifest);
 
+    assertType<Error | undefined>(browser.runtime.lastError);
+    assertType<string | undefined>(browser.runtime.lastError?.message);
+
+    browser.runtime.onInstalled.addListener((details) => {
+        assertType<"install" | "update" | "browser_update">(details.reason);
+        assertType<string | undefined>(details.previousVersion);
+    });
+
     const url: string = browser.runtime.getURL("manifest.json");
     assertType<string>(url);
 
@@ -254,6 +273,10 @@ async function testRuntime() {
     const port2: browser.runtime.Port = browser.runtime.connect("ext-id", { name: "bg" });
     assertType<browser.runtime.Port>(port1);
     assertType<browser.runtime.Port>(port2);
+
+    // Set to the Error the failed connection reported, absent otherwise.
+    assertType<Error | undefined>(port1.error);
+    assertType<string | undefined>(port1.error?.message);
 
     port1.postMessage({ data: "init" });
     port1.onMessage.addListener((msg: unknown) => {
@@ -340,8 +363,30 @@ async function testStorage() {
     await browser.storage.local.remove("counter");
     await browser.storage.local.clear();
 
+    const keys = await browser.storage.local.getKeys();
+    assertType<string[]>(keys);
+
+    browser.storage.local.getKeys((k: string[]) => {
+        assertType<string[]>(k);
+    });
+
+    await browser.storage.local.setAccessLevel({ accessLevel: "TRUSTED_CONTEXTS" });
+
+    assertType<number>(browser.storage.local.QUOTA_BYTES);
+
+    browser.storage.local.onChanged.addListener((changes, areaName: string) => {
+        assertType<Record<string, browser.StorageChange>>(changes);
+        assertType<string>(areaName);
+    });
+
     await browser.storage.sync.set({ syncedOption: true });
     await browser.storage.session.set({ ephemeralState: "active" });
+
+    // The sync area alone carries the per-item and write-rate limits.
+    assertType<number>(browser.storage.sync.QUOTA_BYTES_PER_ITEM);
+    assertType<number>(browser.storage.sync.MAX_ITEMS);
+    assertType<number>(browser.storage.sync.MAX_WRITE_OPERATIONS_PER_HOUR);
+    assertType<number>(browser.storage.sync.MAX_WRITE_OPERATIONS_PER_MINUTE);
 
     browser.storage.onChanged.addListener((changes, areaName: string) => {
         assertType<string>(areaName);
@@ -386,9 +431,17 @@ async function testTabs() {
     await browser.tabs.reload(newTab.id!, { bypassCache: true });
     await browser.tabs.remove(newTab.id!);
 
+    // changeInfo is a Tab holding only the keys that changed.
     browser.tabs.onUpdated.addListener((tabId: number, changeInfo, tab: browser.Tab) => {
         assertType<number>(tabId);
+        assertType<browser.Tab>(changeInfo);
         assertType<browser.Tab>(tab);
+    });
+
+    browser.tabs.onActivated.addListener((activeInfo) => {
+        assertType<number>(activeInfo.previousTabId);
+        assertType<number>(activeInfo.tabId);
+        assertType<number>(activeInfo.windowId);
     });
 }
 
