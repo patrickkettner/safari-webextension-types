@@ -446,14 +446,29 @@ async function testTabs() {
 }
 
 async function testWebNavigation() {
+    // The details argument and the result are different shapes: the argument is
+    // the lookup key, the result is what the frame turned out to be.
     const frame = await browser.webNavigation.getFrame({ tabId: 1, frameId: 0 });
-    assertType<browser.WebNavigationGetFrameDetails | null>(frame);
+    assertType<browser.FrameDetails | null>(frame);
+    if (frame) {
+        assertType<boolean>(frame.errorOccurred);
+        assertType<number>(frame.parentFrameId);
+        assertType<string>(frame.url);
+        assertType<number | undefined>(frame.frameId);
+        assertType<string | undefined>(frame.documentId);
+    }
 
+    // Always an array; getAllFrames maps a vector rather than an optional.
     const allFrames = await browser.webNavigation.getAllFrames({ tabId: 1 });
-    assertType<browser.WebNavigationGetFrameDetails[] | null>(allFrames);
+    assertType<browser.FrameDetails[]>(allFrames);
 
     browser.webNavigation.onCommitted.addListener((details) => {
-        assertType<number | undefined>(details.tabId);
+        assertType<string>(details.url);
+        assertType<number>(details.tabId);
+        assertType<number>(details.frameId);
+        assertType<number>(details.parentFrameId);
+        assertType<number>(details.timeStamp);
+        assertType<string | undefined>(details.documentId);
     });
 }
 

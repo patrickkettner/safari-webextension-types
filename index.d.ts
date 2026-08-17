@@ -37,6 +37,96 @@ declare namespace browser {
         error?: string;
     }
 
+    export interface MenuItemUpdateProperties {
+        checked?: boolean;
+        command?: string;
+        contexts?: string[];
+        documentUrlPatterns?: string[];
+        enabled?: boolean;
+        icons?: string | Record<string, unknown> | null;
+        iconVariants?: Record<string, unknown>[] | null;
+        id?: string | number;
+        onclick?: (...args: never[]) => void;
+        parentId?: string | number;
+        targetUrlPatterns?: string[];
+        title?: string;
+        type?: string;
+        visible?: boolean;
+    }
+
+    export interface InjectionTarget {
+        tabId: number;
+        allFrames?: boolean;
+        documentIds?: string[];
+        frameIds?: number[];
+    }
+
+    export interface CSSInjection {
+        target: browser.InjectionTarget;
+        css?: string;
+        files?: string[];
+        origin?: string;
+    }
+
+    export interface TabUpdateOptions {
+        active?: boolean;
+        highlighted?: boolean;
+        muted?: boolean;
+        openerTabId?: number;
+        pinned?: boolean;
+        selected?: boolean;
+        url?: string;
+    }
+
+    export interface TabQueryOptions {
+        active?: boolean;
+        audible?: boolean;
+        currentWindow?: boolean;
+        hidden?: boolean;
+        highlighted?: boolean;
+        index?: number;
+        lastFocusedWindow?: boolean;
+        muted?: boolean;
+        pinned?: boolean;
+        selected?: boolean;
+        status?: browser.TabStatus;
+        title?: string;
+        url?: string | string[];
+        windowId?: number;
+        windowType?: browser.WindowType;
+    }
+
+    export interface TabScriptInjection {
+        allFrames?: boolean;
+        code?: string;
+        documentId?: string;
+        file?: string;
+        frameId?: number;
+        tabId?: number;
+    }
+
+    export interface WindowQueryOptions {
+        populate?: boolean;
+        windowTypes?: browser.WindowType[];
+    }
+
+    export interface WindowUpdateOptions {
+        state?: browser.WindowState;
+        focused?: boolean;
+        top?: number;
+        left?: number;
+        width?: number;
+        height?: number;
+    }
+
+    export interface FrameDetails {
+        errorOccurred: boolean;
+        parentFrameId: number;
+        url: string;
+        frameId?: number;
+        documentId?: string;
+    }
+
     export interface RegisteredContentScript {
         id: string;
         matches: string[];
@@ -220,8 +310,8 @@ declare namespace browser {
     }
 
     export interface DNRTabUpdateOptions {
-        count?: number;
-        tabId?: number;
+        increment: number;
+        tabId: number;
     }
 
     export interface DNRUpdateRuleOptions {
@@ -499,8 +589,8 @@ declare namespace browser {
             remove(keys: string | string[], callback: () => void): void;
             clear(): Promise<void>;
             clear(callback: () => void): void;
-            setAccessLevel(accessOptions: browser.StorageAccessOptions): Promise<void>;
-            setAccessLevel(accessOptions: browser.StorageAccessOptions, callback: () => void): void;
+            setAccessLevel(accessOptions: { accessLevel: "TRUSTED_CONTEXTS" | "TRUSTED_AND_UNTRUSTED_CONTEXTS" }): Promise<void>;
+            setAccessLevel(accessOptions: { accessLevel: "TRUSTED_CONTEXTS" | "TRUSTED_AND_UNTRUSTED_CONTEXTS" }, callback: () => void): void;
         }
         export interface SyncStorageArea extends StorageArea {
             QUOTA_BYTES_PER_ITEM: number;
@@ -515,7 +605,7 @@ declare namespace browser {
         export interface InspectedWindow {
             tabId: number;
             /**
-             * @deprecated The callback receives one argument, a two-element array of the result and, on failure, an error object. Prefer the promise. WebKit builds that error object with the literal keys "isExceptionKey" and "valueKey", which are the names of its key constants rather than their values.
+             * The callback parameter list is left open because WebKit calls it with one argument, a two-element array of the result and, on failure, an error object. Prefer the promise. WebKit builds that error object with the literal keys "isExceptionKey" and "valueKey", which are the names of its key constants rather than their values.
              */
             eval<T = unknown>(expression: string, options?: browser.DevToolsEvalOptions, callback?: (...args: unknown[]) => void): Promise<T>;
             reload(reloadOptions?: browser.DevToolsReloadOptions): void;
@@ -547,12 +637,12 @@ declare namespace browser {
         export function getBadgeBackgroundColor(details?: browser.ActionDetails): Promise<number[]>;
         export function setBadgeBackgroundColor(details: browser.ActionSetBadgeBackgroundColorDetails, callback: () => void): void;
         export function setBadgeBackgroundColor(details: browser.ActionSetBadgeBackgroundColorDetails): Promise<void>;
-        export function enable(tabId: browser.ActionDetails, callback: () => void): void;
+        export function enable(tabId: number, callback: () => void): void;
         export function enable(callback: () => void): void;
-        export function enable(tabId?: browser.ActionDetails): Promise<void>;
-        export function disable(tabId: browser.ActionDetails, callback: () => void): void;
+        export function enable(tabId?: number): Promise<void>;
+        export function disable(tabId: number, callback: () => void): void;
         export function disable(callback: () => void): void;
-        export function disable(tabId?: browser.ActionDetails): Promise<void>;
+        export function disable(tabId?: number): Promise<void>;
         export function isEnabled(details: browser.ActionDetails, callback: (result: boolean) => void): void;
         export function isEnabled(callback: (result: boolean) => void): void;
         export function isEnabled(details?: browser.ActionDetails): Promise<boolean>;
@@ -563,17 +653,17 @@ declare namespace browser {
         export function getPopup(details: browser.ActionDetails, callback: (result: string) => void): void;
         export function getPopup(callback: (result: string) => void): void;
         export function getPopup(details?: browser.ActionDetails): Promise<string>;
-        export function openPopup(options: browser.ActionOpenPopupOptions, callback: () => void): void;
+        export function openPopup(options: browser.ActionDetails, callback: () => void): void;
         export function openPopup(callback: () => void): void;
-        export function openPopup(options?: browser.ActionOpenPopupOptions): Promise<void>;
+        export function openPopup(options?: browser.ActionDetails): Promise<void>;
     }
 
     export namespace alarms {
         export const onAlarm: events.Event<(alarm: browser.Alarm) => void>;
-        export function create(name: string, info: Record<string, unknown>, callback: (result: browser.Alarm) => void): void;
-        export function create(name: string, info: Record<string, unknown>): Promise<browser.Alarm>;
-        export function create(info: Record<string, unknown>, callback: (result: browser.Alarm) => void): void;
-        export function create(info: Record<string, unknown>): Promise<browser.Alarm>;
+        export function create(name: string, info: { name?: string; when?: number; delayInMinutes?: number; periodInMinutes?: number }, callback: () => void): void;
+        export function create(name: string, info: { name?: string; when?: number; delayInMinutes?: number; periodInMinutes?: number }): Promise<void>;
+        export function create(info: { name?: string; when?: number; delayInMinutes?: number; periodInMinutes?: number }, callback: () => void): void;
+        export function create(info: { name?: string; when?: number; delayInMinutes?: number; periodInMinutes?: number }): Promise<void>;
         export function get(name: string, callback: (result: browser.Alarm | undefined) => void): void;
         export function get(callback: (result: browser.Alarm | undefined) => void): void;
         export function get(name?: string): Promise<browser.Alarm | undefined>;
@@ -597,8 +687,8 @@ declare namespace browser {
         export function getSubTree(id: string): Promise<browser.BookmarkTreeNode[]>;
         export function getTree(callback: (result: browser.BookmarkTreeNode[]) => void): void;
         export function getTree(): Promise<browser.BookmarkTreeNode[]>;
-        export function get(idOrIdList: string | string[], callback: (result: browser.BookmarkTreeNode) => void): void;
-        export function get(idOrIdList: string | string[]): Promise<browser.BookmarkTreeNode>;
+        export function get(idOrIdList: string | string[], callback: (result: browser.BookmarkTreeNode[]) => void): void;
+        export function get(idOrIdList: string | string[]): Promise<browser.BookmarkTreeNode[]>;
         export function remove(id: string, callback: () => void): void;
         export function remove(id: string): Promise<void>;
         export function removeTree(id: string, callback: () => void): void;
@@ -620,17 +710,17 @@ declare namespace browser {
 
     export namespace cookies {
         /**
-         * @deprecated Safari fires this event with no arguments. WebKit has not implemented changeInfo; see https://webkit.org/b/267514. A listener parameter will be undefined at runtime.
+         * No payload is declared because Safari fires this event with no arguments. changeInfo is not implemented yet; see https://webkit.org/b/267514. A listener parameter will be undefined at runtime.
          */
         export const onChanged: events.Event<(...args: unknown[]) => void>;
-        export function get(details: Record<string, unknown>, callback: (result: browser.Cookie | null) => void): void;
-        export function get(details: Record<string, unknown>): Promise<browser.Cookie | null>;
-        export function getAll(details: Record<string, unknown>, callback: (result: browser.Cookie[]) => void): void;
-        export function getAll(details: Record<string, unknown>): Promise<browser.Cookie[]>;
-        export function set(details: Record<string, unknown>, callback: () => void): void;
-        export function set(details: Record<string, unknown>): Promise<void>;
-        export function remove(details: Record<string, unknown>, callback: () => void): void;
-        export function remove(details: Record<string, unknown>): Promise<void>;
+        export function get(details: { name: string; url: string; storeId?: string }, callback: (result: browser.Cookie | null) => void): void;
+        export function get(details: { name: string; url: string; storeId?: string }): Promise<browser.Cookie | null>;
+        export function getAll(details: { name?: string; url?: string; storeId?: string; domain?: string; path?: string; secure?: boolean; session?: boolean }, callback: (result: browser.Cookie[]) => void): void;
+        export function getAll(details: { name?: string; url?: string; storeId?: string; domain?: string; path?: string; secure?: boolean; session?: boolean }): Promise<browser.Cookie[]>;
+        export function set(details: { url: string; name?: string; storeId?: string; domain?: string; path?: string; value?: string; expirationDate?: number; httpOnly?: boolean; secure?: boolean; sameSite?: browser.CookieSameSiteStatus }, callback: (result: browser.Cookie | null) => void): void;
+        export function set(details: { url: string; name?: string; storeId?: string; domain?: string; path?: string; value?: string; expirationDate?: number; httpOnly?: boolean; secure?: boolean; sameSite?: browser.CookieSameSiteStatus }): Promise<browser.Cookie | null>;
+        export function remove(details: { name: string; url: string; storeId?: string }, callback: (result: browser.Cookie | null) => void): void;
+        export function remove(details: { name: string; url: string; storeId?: string }): Promise<browser.Cookie | null>;
         export function getAllCookieStores(callback: (result: browser.CookieStore[]) => void): void;
         export function getAllCookieStores(): Promise<browser.CookieStore[]>;
     }
@@ -644,27 +734,27 @@ declare namespace browser {
         export const MAX_NUMBER_OF_STATIC_RULESETS: number;
         export const MAX_NUMBER_OF_ENABLED_STATIC_RULESETS: number;
         export const MAX_NUMBER_OF_DYNAMIC_AND_SESSION_RULES: number;
-        export function updateEnabledRulesets(options: Record<string, unknown>, callback: () => void): void;
-        export function updateEnabledRulesets(options: Record<string, unknown>): Promise<void>;
+        export function updateEnabledRulesets(options: { enableRulesetIds?: string[]; disableRulesetIds?: string[] }, callback: () => void): void;
+        export function updateEnabledRulesets(options: { enableRulesetIds?: string[]; disableRulesetIds?: string[] }): Promise<void>;
         export function getEnabledRulesets(callback: (result: string[]) => void): void;
         export function getEnabledRulesets(): Promise<string[]>;
-        export function updateDynamicRules(options: Record<string, unknown>, callback: () => void): void;
-        export function updateDynamicRules(options: Record<string, unknown>): Promise<void>;
+        export function updateDynamicRules(options: { addRules?: Record<string, unknown>[]; removeRuleIds?: number[] }, callback: () => void): void;
+        export function updateDynamicRules(options: { addRules?: Record<string, unknown>[]; removeRuleIds?: number[] }): Promise<void>;
         export function getDynamicRules(filter: unknown, callback: (result: Record<string, unknown>[]) => void): void;
         export function getDynamicRules(callback: (result: Record<string, unknown>[]) => void): void;
         export function getDynamicRules(filter?: unknown): Promise<Record<string, unknown>[]>;
-        export function updateSessionRules(options: Record<string, unknown>, callback: () => void): void;
-        export function updateSessionRules(options: Record<string, unknown>): Promise<void>;
+        export function updateSessionRules(options: { addRules?: Record<string, unknown>[]; removeRuleIds?: number[] }, callback: () => void): void;
+        export function updateSessionRules(options: { addRules?: Record<string, unknown>[]; removeRuleIds?: number[] }): Promise<void>;
         export function getSessionRules(filter: unknown, callback: (result: Record<string, unknown>[]) => void): void;
         export function getSessionRules(callback: (result: Record<string, unknown>[]) => void): void;
         export function getSessionRules(filter?: unknown): Promise<Record<string, unknown>[]>;
         export function getMatchedRules(filter: browser.DNRMatchedRulesFilter, callback: (result: { rulesMatchedInfo: browser.DNRMatchedRule[] }) => void): void;
         export function getMatchedRules(callback: (result: { rulesMatchedInfo: browser.DNRMatchedRule[] }) => void): void;
         export function getMatchedRules(filter?: browser.DNRMatchedRulesFilter): Promise<{ rulesMatchedInfo: browser.DNRMatchedRule[] }>;
-        export function isRegexSupported(regexOptions: unknown, callback: (result: { isSupported: boolean; reason?: string }) => void): void;
-        export function isRegexSupported(regexOptions: unknown): Promise<{ isSupported: boolean; reason?: string }>;
-        export function setExtensionActionOptions(options: Record<string, unknown>, callback: () => void): void;
-        export function setExtensionActionOptions(options: Record<string, unknown>): Promise<void>;
+        export function isRegexSupported(regexOptions: { regex: string; isCaseSensitive?: boolean; requireCapturing?: boolean }, callback: (result: { isSupported: boolean; reason?: string }) => void): void;
+        export function isRegexSupported(regexOptions: { regex: string; isCaseSensitive?: boolean; requireCapturing?: boolean }): Promise<{ isSupported: boolean; reason?: string }>;
+        export function setExtensionActionOptions(options: { displayActionCountAsBadgeText?: boolean; tabUpdate?: { tabId: number; increment: number } }, callback: () => void): void;
+        export function setExtensionActionOptions(options: { displayActionCountAsBadgeText?: boolean; tabUpdate?: { tabId: number; increment: number } }): Promise<void>;
     }
 
     export namespace devtools {
@@ -699,8 +789,8 @@ declare namespace browser {
         export const onClicked: events.Event<(info: { menuItemId: number | string; parentMenuItemId?: number | string; checked?: boolean; wasChecked?: boolean; selectionText?: string; srcUrl?: string; mediaType?: "audio" | "image" | "video"; linkUrl?: string; linkText?: string; editable?: boolean; frameId?: number; pageUrl?: string; frameUrl?: string }, tab?: browser.Tab) => void>;
         export const ACTION_MENU_TOP_LEVEL_LIMIT: number;
         export function create(createProperties: browser.MenuItemProperties, callback?: () => void): number | string;
-        export function update(identifier: number | string, properties: Record<string, unknown>, callback: (result: browser.MenuItemProperties) => void): void;
-        export function update(identifier: number | string, properties: Record<string, unknown>): Promise<browser.MenuItemProperties>;
+        export function update(identifier: number | string, properties: browser.MenuItemUpdateProperties, callback: () => void): void;
+        export function update(identifier: number | string, properties: browser.MenuItemUpdateProperties): Promise<void>;
         export function remove(identifier: number | string, callback: () => void): void;
         export function remove(identifier: number | string): Promise<void>;
         export function removeAll(callback: () => void): void;
@@ -709,18 +799,18 @@ declare namespace browser {
 
     export namespace notifications {
         /**
-         * @deprecated Safari never fires this event. WebKit creates the event object but no code path invokes its listeners.
+         * No payload is declared because Safari does not fire this event yet. WebKit creates the event object, and no code path invokes its listeners.
          */
         export const onClicked: events.Event<(...args: unknown[]) => void>;
         /**
-         * @deprecated Safari never fires this event. WebKit creates the event object but no code path invokes its listeners.
+         * No payload is declared because Safari does not fire this event yet. WebKit creates the event object, and no code path invokes its listeners.
          */
         export const onButtonClicked: events.Event<(...args: unknown[]) => void>;
     }
 
     export namespace offscreen {
-        export function createDocument(options: browser.OffscreenCreateParameters, callback: () => void): void;
-        export function createDocument(options: browser.OffscreenCreateParameters): Promise<void>;
+        export function createDocument(options: { url: string; justification: string; reasons: string[] }, callback: () => void): void;
+        export function createDocument(options: { url: string; justification: string; reasons: string[] }): Promise<void>;
         export function closeDocument(callback: () => void): void;
         export function closeDocument(): Promise<void>;
         export function hasDocument(callback: (result: boolean) => void): void;
@@ -752,8 +842,8 @@ declare namespace browser {
         export function getURL(resourcePath: string): string;
         export function getManifest(): Record<string, unknown>;
         export function getVersion(): string;
-        export function getFrameId(target: browser.MessageSender | globalThis.Window): number;
-        export function getDocumentId(target: browser.MessageSender | globalThis.Window): string;
+        export function getFrameId(target: globalThis.Window | globalThis.HTMLIFrameElement | globalThis.HTMLFrameElement): number;
+        export function getDocumentId(target: globalThis.Window | globalThis.HTMLIFrameElement | globalThis.HTMLFrameElement): string;
         export function getPlatformInfo(callback: (result: browser.PlatformInfo) => void): void;
         export function getPlatformInfo(): Promise<browser.PlatformInfo>;
         export function getBackgroundPage(callback: (result: globalThis.Window | null) => void): void;
@@ -780,10 +870,10 @@ declare namespace browser {
         export const ExecutionWorld: { readonly ISOLATED: "ISOLATED"; readonly MAIN: "MAIN" };
         export function executeScript(details: browser.ScriptInjection, callback: (result: browser.InjectionResult[]) => void): void;
         export function executeScript(details: browser.ScriptInjection): Promise<browser.InjectionResult[]>;
-        export function insertCSS(details: Record<string, unknown>, callback: () => void): void;
-        export function insertCSS(details: Record<string, unknown>): Promise<void>;
-        export function removeCSS(details: Record<string, unknown>, callback: () => void): void;
-        export function removeCSS(details: Record<string, unknown>): Promise<void>;
+        export function insertCSS(details: browser.CSSInjection, callback: () => void): void;
+        export function insertCSS(details: browser.CSSInjection): Promise<void>;
+        export function removeCSS(details: browser.CSSInjection, callback: () => void): void;
+        export function removeCSS(details: browser.CSSInjection): Promise<void>;
         export function registerContentScripts(scripts: browser.RegisteredContentScript[], callback: () => void): void;
         export function registerContentScripts(scripts: browser.RegisteredContentScript[]): Promise<void>;
         export function getRegisteredContentScripts(filter: unknown, callback: (result: browser.RegisteredContentScript[]) => void): void;
@@ -797,16 +887,16 @@ declare namespace browser {
     }
 
     export namespace sidePanel {
-        export function getOptions(options: browser.SidePanelOptions, callback: (result: browser.SidePanelOptions) => void): void;
-        export function getOptions(options: browser.SidePanelOptions): Promise<browser.SidePanelOptions>;
+        export function getOptions(options: { tabId?: number }, callback: (result: browser.SidePanelOptions) => void): void;
+        export function getOptions(options: { tabId?: number }): Promise<browser.SidePanelOptions>;
         export function setOptions(options: browser.SidePanelOptions, callback: () => void): void;
         export function setOptions(options: browser.SidePanelOptions): Promise<void>;
         export function getPanelBehavior(callback: (result: browser.SidePanelBehavior) => void): void;
         export function getPanelBehavior(): Promise<browser.SidePanelBehavior>;
         export function setPanelBehavior(behavior: browser.SidePanelBehavior, callback: () => void): void;
         export function setPanelBehavior(behavior: browser.SidePanelBehavior): Promise<void>;
-        export function open(options: browser.SidePanelOptions, callback: () => void): void;
-        export function open(options: browser.SidePanelOptions): Promise<void>;
+        export function open(options: { tabId?: number; windowId?: number }, callback: () => void): void;
+        export function open(options: { tabId?: number; windowId?: number }): Promise<void>;
     }
 
     export namespace sidebarAction {
@@ -816,8 +906,8 @@ declare namespace browser {
         export function close(): Promise<void>;
         export function toggle(callback: () => void): void;
         export function toggle(): Promise<void>;
-        export function isOpen(details: browser.SidebarActionDetails, callback: (result: boolean) => void): void;
-        export function isOpen(details: browser.SidebarActionDetails): Promise<boolean>;
+        export function isOpen(details: { windowId?: number }, callback: (result: boolean) => void): void;
+        export function isOpen(details: { windowId?: number }): Promise<boolean>;
         export function getPanel(details: browser.SidebarActionDetails, callback: (result: string) => void): void;
         export function getPanel(details: browser.SidebarActionDetails): Promise<string>;
         export function setPanel(details: browser.SidebarActionSetPanelDetails, callback: () => void): void;
@@ -848,10 +938,10 @@ declare namespace browser {
         export const onRemoved: events.Event<(tabId: number, removeInfo: { windowId: number; isWindowClosing: boolean }) => void>;
         export const onReplaced: events.Event<(addedTabId: number, removedTabId: number) => void>;
         export const onUpdated: events.Event<(tabId: number, changeInfo: browser.Tab, tab: browser.Tab) => void>;
-        export function create(properties: Record<string, unknown>, callback: (result: browser.Tab) => void): void;
-        export function create(properties: Record<string, unknown>): Promise<browser.Tab>;
-        export function query(info: Record<string, unknown>, callback: (result: browser.Tab[]) => void): void;
-        export function query(info: Record<string, unknown>): Promise<browser.Tab[]>;
+        export function create(properties: browser.TabUpdateOptions & { index?: number; openInReaderMode?: boolean; title?: string; windowId?: number }, callback: (result: browser.Tab) => void): void;
+        export function create(properties: browser.TabUpdateOptions & { index?: number; openInReaderMode?: boolean; title?: string; windowId?: number }): Promise<browser.Tab>;
+        export function query(info: browser.TabQueryOptions, callback: (result: browser.Tab[]) => void): void;
+        export function query(info: browser.TabQueryOptions): Promise<browser.Tab[]>;
         export function get(tabID: number, callback: (result: browser.Tab) => void): void;
         export function get(tabID: number): Promise<browser.Tab>;
         export function getCurrent(callback: (result: browser.Tab | undefined) => void): void;
@@ -859,23 +949,23 @@ declare namespace browser {
         export function getSelected(windowID: number, callback: (result: browser.Tab | undefined) => void): void;
         export function getSelected(callback: (result: browser.Tab | undefined) => void): void;
         export function getSelected(windowID?: number): Promise<browser.Tab | undefined>;
-        export function duplicate(tabID: number, properties: Record<string, unknown>, callback: (result: browser.Tab | undefined) => void): void;
+        export function duplicate(tabID: number, properties: { active?: boolean; index?: number }, callback: (result: browser.Tab | undefined) => void): void;
         export function duplicate(tabID: number, callback: (result: browser.Tab | undefined) => void): void;
-        export function duplicate(tabID: number, properties?: Record<string, unknown>): Promise<browser.Tab | undefined>;
-        export function update(tabID: number, properties: Record<string, unknown>, callback: (result: browser.Tab) => void): void;
-        export function update(tabID: number, properties: Record<string, unknown>): Promise<browser.Tab>;
-        export function update(properties: Record<string, unknown>, callback: (result: browser.Tab) => void): void;
-        export function update(properties: Record<string, unknown>): Promise<browser.Tab>;
-        export function move(tabIDs: number | number[], properties: Record<string, unknown>, callback: (result: browser.Tab) => void): void;
-        export function move(tabIDs: number | number[], properties: Record<string, unknown>): Promise<browser.Tab>;
+        export function duplicate(tabID: number, properties?: { active?: boolean; index?: number }): Promise<browser.Tab | undefined>;
+        export function update(tabID: number, properties: browser.TabUpdateOptions, callback: (result: browser.Tab) => void): void;
+        export function update(tabID: number, properties: browser.TabUpdateOptions): Promise<browser.Tab>;
+        export function update(properties: browser.TabUpdateOptions, callback: (result: browser.Tab) => void): void;
+        export function update(properties: browser.TabUpdateOptions): Promise<browser.Tab>;
+        export function move(tabIDs: number | number[], properties: { index: number; windowId?: number }, callback: (result: browser.Tab | browser.Tab[]) => void): void;
+        export function move(tabIDs: number | number[], properties: { index: number; windowId?: number }): Promise<browser.Tab | browser.Tab[]>;
         export function remove(tabIDs: number | number[], callback: () => void): void;
         export function remove(tabIDs: number | number[]): Promise<void>;
-        export function reload(tabID: number, properties: Record<string, unknown>, callback: () => void): void;
+        export function reload(tabID: number, properties: { bypassCache?: boolean }, callback: () => void): void;
         export function reload(tabID: number, callback: () => void): void;
-        export function reload(tabID: number, properties?: Record<string, unknown>): Promise<void>;
-        export function reload(properties: Record<string, unknown>, callback: () => void): void;
+        export function reload(tabID: number, properties?: { bypassCache?: boolean }): Promise<void>;
+        export function reload(properties: { bypassCache?: boolean }, callback: () => void): void;
         export function reload(callback: () => void): void;
-        export function reload(properties?: Record<string, unknown>): Promise<void>;
+        export function reload(properties?: { bypassCache?: boolean }): Promise<void>;
         export function goBack(tabID: number, callback: () => void): void;
         export function goBack(callback: () => void): void;
         export function goBack(tabID?: number): Promise<void>;
@@ -895,44 +985,44 @@ declare namespace browser {
         export function toggleReaderMode(tabID: number, callback: () => void): void;
         export function toggleReaderMode(callback: () => void): void;
         export function toggleReaderMode(tabID?: number): Promise<void>;
-        export function captureVisibleTab(windowID: number, options: Record<string, unknown>, callback: (result: string) => void): void;
+        export function captureVisibleTab(windowID: number, options: { format?: string; quality?: number }, callback: (result: string) => void): void;
         export function captureVisibleTab(windowID: number, callback: (result: string) => void): void;
-        export function captureVisibleTab(windowID: number, options?: Record<string, unknown>): Promise<string>;
-        export function captureVisibleTab(options: Record<string, unknown>, callback: (result: string) => void): void;
+        export function captureVisibleTab(windowID: number, options?: { format?: string; quality?: number }): Promise<string>;
+        export function captureVisibleTab(options: { format?: string; quality?: number }, callback: (result: string) => void): void;
         export function captureVisibleTab(callback: (result: string) => void): void;
-        export function captureVisibleTab(options?: Record<string, unknown>): Promise<string>;
-        export function executeScript(tabID: number, details: Record<string, unknown>, callback: (result: unknown[]) => void): void;
-        export function executeScript(tabID: number, details: Record<string, unknown>): Promise<unknown[]>;
-        export function executeScript(details: Record<string, unknown>, callback: (result: unknown[]) => void): void;
-        export function executeScript(details: Record<string, unknown>): Promise<unknown[]>;
-        export function insertCSS(tabID: number, details: Record<string, unknown>, callback: () => void): void;
-        export function insertCSS(tabID: number, details: Record<string, unknown>): Promise<void>;
-        export function insertCSS(details: Record<string, unknown>, callback: () => void): void;
-        export function insertCSS(details: Record<string, unknown>): Promise<void>;
-        export function removeCSS(tabID: number, details: Record<string, unknown>, callback: () => void): void;
-        export function removeCSS(tabID: number, details: Record<string, unknown>): Promise<void>;
-        export function removeCSS(details: Record<string, unknown>, callback: () => void): void;
-        export function removeCSS(details: Record<string, unknown>): Promise<void>;
+        export function captureVisibleTab(options?: { format?: string; quality?: number }): Promise<string>;
+        export function executeScript(tabID: number, details: browser.TabScriptInjection, callback: (result: unknown[]) => void): void;
+        export function executeScript(tabID: number, details: browser.TabScriptInjection): Promise<unknown[]>;
+        export function executeScript(details: browser.TabScriptInjection, callback: (result: unknown[]) => void): void;
+        export function executeScript(details: browser.TabScriptInjection): Promise<unknown[]>;
+        export function insertCSS(tabID: number, details: browser.TabScriptInjection, callback: () => void): void;
+        export function insertCSS(tabID: number, details: browser.TabScriptInjection): Promise<void>;
+        export function insertCSS(details: browser.TabScriptInjection, callback: () => void): void;
+        export function insertCSS(details: browser.TabScriptInjection): Promise<void>;
+        export function removeCSS(tabID: number, details: browser.TabScriptInjection, callback: () => void): void;
+        export function removeCSS(tabID: number, details: browser.TabScriptInjection): Promise<void>;
+        export function removeCSS(details: browser.TabScriptInjection, callback: () => void): void;
+        export function removeCSS(details: browser.TabScriptInjection): Promise<void>;
         export function sendMessage<T = unknown, R = unknown>(tabID: number, message: T, options: browser.MessageOptions, callback: (result: R) => void): void;
         export function sendMessage<T = unknown, R = unknown>(tabID: number, message: T, callback: (result: R) => void): void;
         export function sendMessage<T = unknown, R = unknown>(tabID: number, message: T, options?: browser.MessageOptions): Promise<R>;
-        export function connect(tabID: number, options?: Record<string, unknown>): browser.runtime.Port;
+        export function connect(tabID: number, options?: { frameId?: number; documentId?: string; name?: string }): browser.runtime.Port;
     }
 
     export namespace test {
         export const onMessage: events.Event<(message: string, argument?: unknown) => void>;
         export const onTestStarted: events.Event<(testName: string) => void>;
         export const onTestFinished: events.Event<(result: boolean, message?: string) => void>;
-        export function notifyFail(message?: browser.MessageOptions): void;
-        export function notifyPass(message?: browser.MessageOptions): void;
+        export function notifyFail(message?: string): void;
+        export function notifyPass(message?: string): void;
         export function sendMessage(message: string, argument?: unknown): void;
         export function runWithUserGesture<T>(func: () => T): T;
         export function isProcessingUserGesture(): boolean;
         export function log(message: unknown): void;
-        export function fail(message?: browser.MessageOptions): void;
-        export function succeed(message?: browser.MessageOptions): void;
-        export function assertTrue(actualValue: boolean, message?: browser.MessageOptions): void;
-        export function assertFalse(actualValue: boolean, message?: browser.MessageOptions): void;
+        export function fail(message?: string): void;
+        export function succeed(message?: string): void;
+        export function assertTrue(actualValue: boolean, message?: string): void;
+        export function assertFalse(actualValue: boolean, message?: string): void;
         export function assertDeepEq<T>(actualValue: T, expectedValue: T, message?: string): void;
         export function assertEq<T>(actualValue: T, expectedValue: T, message?: string): void;
         export function assertRejects<T>(promise: Promise<T>, expectedError?: unknown, message?: string): Promise<T>;
@@ -950,14 +1040,14 @@ declare namespace browser {
         export const onDOMContentLoaded: events.Event<(details: { url: string; tabId: number; frameId: number; parentFrameId: number; timeStamp: number; documentId?: string }) => void>;
         export const onCompleted: events.Event<(details: { url: string; tabId: number; frameId: number; parentFrameId: number; timeStamp: number; documentId?: string }) => void>;
         export const onErrorOccurred: events.Event<(details: { url: string; tabId: number; frameId: number; parentFrameId: number; timeStamp: number; documentId?: string }) => void>;
-        export function getFrame(details: browser.WebNavigationGetFrameDetails, callback: (result: browser.WebNavigationGetFrameDetails | null) => void): void;
-        export function getFrame(details: browser.WebNavigationGetFrameDetails): Promise<browser.WebNavigationGetFrameDetails | null>;
-        export function getAllFrames(details: browser.WebNavigationGetAllFramesDetails, callback: (result: browser.WebNavigationGetFrameDetails[] | null) => void): void;
-        export function getAllFrames(details: browser.WebNavigationGetAllFramesDetails): Promise<browser.WebNavigationGetFrameDetails[] | null>;
+        export function getFrame(details: { tabId: number; frameId: number }, callback: (result: browser.FrameDetails | null) => void): void;
+        export function getFrame(details: { tabId: number; frameId: number }): Promise<browser.FrameDetails | null>;
+        export function getAllFrames(details: { tabId: number }, callback: (result: browser.FrameDetails[]) => void): void;
+        export function getAllFrames(details: { tabId: number }): Promise<browser.FrameDetails[]>;
     }
 
     export namespace webRequest {
-        export const onBeforeRequest: events.WebRequestEvent<(details: browser.WebRequestDetails) => void>;
+        export const onBeforeRequest: events.WebRequestEvent<(details: browser.WebRequestDetails & { requestBody?: { formData?: Record<string, unknown[]>; raw?: { bytes?: unknown }[]; error?: string } }) => void>;
         export const onBeforeSendHeaders: events.WebRequestEvent<(details: browser.WebRequestDetails) => void>;
         export const onSendHeaders: events.WebRequestEvent<(details: browser.WebRequestDetails) => void>;
         export const onHeadersReceived: events.WebRequestEvent<(details: browser.WebRequestDetails) => void>;
@@ -974,23 +1064,23 @@ declare namespace browser {
         export const onCreated: events.Event<(window: browser.Window) => void>;
         export const onRemoved: events.Event<(windowId: number) => void>;
         export const onFocusChanged: events.Event<(windowId: number) => void>;
-        export function create(info: Record<string, unknown>, callback: (result: browser.Window | undefined) => void): void;
+        export function create(info: browser.WindowUpdateOptions & { type?: browser.WindowType; incognito?: boolean; url?: string | string[]; tabId?: number }, callback: (result: browser.Window | undefined) => void): void;
         export function create(callback: (result: browser.Window | undefined) => void): void;
-        export function create(info?: Record<string, unknown>): Promise<browser.Window | undefined>;
-        export function get(windowID: number, properties: Record<string, unknown>, callback: (result: browser.Window) => void): void;
+        export function create(info?: browser.WindowUpdateOptions & { type?: browser.WindowType; incognito?: boolean; url?: string | string[]; tabId?: number }): Promise<browser.Window | undefined>;
+        export function get(windowID: number, properties: browser.WindowQueryOptions, callback: (result: browser.Window) => void): void;
         export function get(windowID: number, callback: (result: browser.Window) => void): void;
-        export function get(windowID: number, properties?: Record<string, unknown>): Promise<browser.Window>;
-        export function getCurrent(info: Record<string, unknown>, callback: (result: browser.Window) => void): void;
+        export function get(windowID: number, properties?: browser.WindowQueryOptions): Promise<browser.Window>;
+        export function getCurrent(info: browser.WindowQueryOptions, callback: (result: browser.Window) => void): void;
         export function getCurrent(callback: (result: browser.Window) => void): void;
-        export function getCurrent(info?: Record<string, unknown>): Promise<browser.Window>;
-        export function getLastFocused(info: Record<string, unknown>, callback: () => void): void;
-        export function getLastFocused(callback: () => void): void;
-        export function getLastFocused(info?: Record<string, unknown>): Promise<void>;
-        export function getAll(info: Record<string, unknown>, callback: (result: browser.Window[]) => void): void;
+        export function getCurrent(info?: browser.WindowQueryOptions): Promise<browser.Window>;
+        export function getLastFocused(info: browser.WindowQueryOptions, callback: (result: browser.Window) => void): void;
+        export function getLastFocused(callback: (result: browser.Window) => void): void;
+        export function getLastFocused(info?: browser.WindowQueryOptions): Promise<browser.Window>;
+        export function getAll(info: browser.WindowQueryOptions, callback: (result: browser.Window[]) => void): void;
         export function getAll(callback: (result: browser.Window[]) => void): void;
-        export function getAll(info?: Record<string, unknown>): Promise<browser.Window[]>;
-        export function update(windowID: number, properties: Record<string, unknown>, callback: (result: browser.Window) => void): void;
-        export function update(windowID: number, properties: Record<string, unknown>): Promise<browser.Window>;
+        export function getAll(info?: browser.WindowQueryOptions): Promise<browser.Window[]>;
+        export function update(windowID: number, properties: browser.WindowUpdateOptions, callback: (result: browser.Window) => void): void;
+        export function update(windowID: number, properties: browser.WindowUpdateOptions): Promise<browser.Window>;
         export function remove(windowID: number, callback: () => void): void;
         export function remove(windowID: number): Promise<void>;
     }

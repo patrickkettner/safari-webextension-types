@@ -31,10 +31,13 @@ jobs:
         run: npm run build
 
       - name: Verify the committed declarations are what the generator emits
-        run: git diff --exit-code index.d.ts
+        run: git diff --exit-code index.d.ts provenance.json
 
       - name: Typecheck declarations
         run: npm run typecheck
 
       - name: Run type tests
         run: npm test
+
+      - name: Prove every gate can go red
+        run: npm run test:red

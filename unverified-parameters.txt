@@ -1,0 +1,12 @@
+# Parameters whose type was chosen by composing candidate dictionary names out
+# of the namespace, operation and argument spelling, then taking whichever one
+# happened to exist. The dictionary is real; nothing establishes that this
+# argument is the one it describes.
+#
+# This is the return-type bug applied to the other half of every signature.
+# See POSTMORTEM-algorithmic-return-types.md.
+#
+# A name leaves by reading the validateDictionary table for that operation in
+# WebExtensionAPI<Ns>Cocoa.mm, which lists the accepted keys and their classes,
+# and either naming the dictionary explicitly or widening the parameter. This
+# list only shrinks.

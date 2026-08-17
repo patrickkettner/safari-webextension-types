@@ -1,6 +1,7 @@
 {
   "name": "safari-webextension-types",
-  "version": "0.1.0",
+  "version": "0.1.1",
+  "private": true,
   "description": "Authoritative TypeScript declarations for Safari WebExtensions, generated directly from WebKit WebIDL interfaces",
   "author": "Patrick Kettner",
   "license": "Apache-2.0",
@@ -26,6 +27,7 @@
   "types": "index.d.ts",
   "files": [
     "index.d.ts",
+    "provenance.json",
     "LICENSE",
     "README.md"
   ],
@@ -33,7 +35,9 @@
     "build": "python3 scripts/generate.py",
     "generate": "python3 scripts/generate.py",
     "typecheck": "tsc --project test/tsconfig.json --noEmit",
-    "test": "tsc --project test/tsconfig.json --noEmit"
+    "test": "tsc --project test/tsconfig.json --noEmit",
+    "prepublishOnly": "echo \"Not published to npm: consumers pin a commit tarball. See CLAUDE.md.\" && exit 1",
+    "test:red": "python3 test/red/run.py"
   },
   "devDependencies": {
     "typescript": "^5.4.0"

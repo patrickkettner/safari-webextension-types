@@ -1,0 +1,10 @@
+# Operations whose return type comes from the verb table in
+# resolve_algorithmic_return_type, in a namespace whose implementation nobody
+# has read. The table has been wrong six times, including for operations it
+# matched rather than fell through on, so an entry here is an unchecked claim.
+#
+# A name leaves by reading WebExtensionAPI<Ns>Cocoa.mm, confirming every
+# operation against its callback->call, and adding the namespace to
+# READ_NAMESPACES. This list only shrinks.
+#
+# See POSTMORTEM-algorithmic-return-types.md and RETURN-SHAPES-WORKLIST.md.

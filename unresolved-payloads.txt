@@ -1,0 +1,9 @@
+# Operations declared void because no rule in resolve_algorithmic_return_type
+# matched them. A void here is a guess, not a reading: windows.getLastFocused
+# sat in this class and was calling back with a window.
+#
+# This list only shrinks. A name leaves it by reading the operation in WebKit
+# and declaring what it actually calls back with. Deleting a line to make the
+# build pass inverts the point of the file.
+#
+# See POSTMORTEM-algorithmic-return-types.md and RETURN-SHAPES-WORKLIST.md.
