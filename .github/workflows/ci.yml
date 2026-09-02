@@ -41,3 +41,6 @@ jobs:
 
       - name: Prove every gate can go red
         run: npm run test:red
+
+      - name: Test MV3 gate derivation
+        run: npm run test:mv3-gates

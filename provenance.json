@@ -3958,14 +3958,12 @@
       "citations": [
         {
           "absent": false,
-          "line": 37,
-          "path": "Source/WebKit/WebProcess/Extensions/Interfaces/WebExtensionAPIExtension.idl",
-          "quote": "[URL, ConvertNullStringTo=Null, RaisesException, Dynamic] DOMString getURL(DOMString resourcePath);"
+          "line": 91,
+          "path": "Source/WebKit/WebProcess/Extensions/API/Cocoa/WebExtensionAPIExtensionCocoa.mm",
+          "quote": "if (name == \"getURL\"_s)\n        return !context->supportsManifestVersion(3);"
         }
       ],
-      "declarations": [
-        "export function getURL(resourcePath: string): string;"
-      ],
+      "declarations": [],
       "idl": {
         "endLine": 37,
         "line": 37,
@@ -3975,7 +3973,7 @@
       "interface": "WebExtensionAPIExtension",
       "kind": "operation",
       "member": "getURL",
-      "origin": "operation-signature"
+      "origin": "mv3-removed"
     },
     {
       "citations": [
@@ -6182,16 +6180,12 @@
       "citations": [
         {
           "absent": false,
-          "line": 82,
-          "path": "Source/WebKit/WebProcess/Extensions/Interfaces/WebExtensionAPITabs.idl",
-          "quote": "[RaisesException, Dynamic, NeedsPageIdentifier] void getSelected([Optional] double windowID, [Optional, CallbackHandler] function callback);"
+          "line": 577,
+          "path": "Source/WebKit/WebProcess/Extensions/API/Cocoa/WebExtensionAPITabsCocoa.mm",
+          "quote": "static NeverDestroyed<HashSet<AtomString>> removedInManifestVersion3 { HashSet { AtomString(\"executeScript\"_s), AtomString(\"getSelected\"_s), AtomString(\"insertCSS\"_s), AtomString(\"removeCSS\"_s) } };\n    if (removedInManifestVersion3.get().contains(name))\n        return !context->supportsManifestVersion(3);"
         }
       ],
-      "declarations": [
-        "export function getSelected(windowID: number, callback: (result: browser.Tab | undefined) => void): void;",
-        "export function getSelected(callback: (result: browser.Tab | undefined) => void): void;",
-        "export function getSelected(windowID?: number): Promise<browser.Tab | undefined>;"
-      ],
+      "declarations": [],
       "idl": {
         "endLine": 82,
         "line": 82,
@@ -6201,7 +6195,7 @@
       "interface": "WebExtensionAPITabs",
       "kind": "operation",
       "member": "getSelected",
-      "origin": "operation-signature"
+      "origin": "mv3-removed"
     },
     {
       "citations": [
@@ -6513,17 +6507,12 @@
       "citations": [
         {
           "absent": false,
-          "line": 102,
-          "path": "Source/WebKit/WebProcess/Extensions/Interfaces/WebExtensionAPITabs.idl",
-          "quote": "[RaisesException, Dynamic, NeedsPageIdentifier] void executeScript([Optional] double tabID, [NSDictionary] any details, [Optional, CallbackHandler] function callback);"
+          "line": 577,
+          "path": "Source/WebKit/WebProcess/Extensions/API/Cocoa/WebExtensionAPITabsCocoa.mm",
+          "quote": "static NeverDestroyed<HashSet<AtomString>> removedInManifestVersion3 { HashSet { AtomString(\"executeScript\"_s), AtomString(\"getSelected\"_s), AtomString(\"insertCSS\"_s), AtomString(\"removeCSS\"_s) } };\n    if (removedInManifestVersion3.get().contains(name))\n        return !context->supportsManifestVersion(3);"
         }
       ],
-      "declarations": [
-        "export function executeScript(tabID: number, details: browser.TabScriptInjection, callback: (result: unknown[]) => void): void;",
-        "export function executeScript(tabID: number, details: browser.TabScriptInjection): Promise<unknown[]>;",
-        "export function executeScript(details: browser.TabScriptInjection, callback: (result: unknown[]) => void): void;",
-        "export function executeScript(details: browser.TabScriptInjection): Promise<unknown[]>;"
-      ],
+      "declarations": [],
       "idl": {
         "endLine": 102,
         "line": 102,
@@ -6533,23 +6522,18 @@
       "interface": "WebExtensionAPITabs",
       "kind": "operation",
       "member": "executeScript",
-      "origin": "operation-signature"
+      "origin": "mv3-removed"
     },
     {
       "citations": [
         {
           "absent": false,
-          "line": 103,
-          "path": "Source/WebKit/WebProcess/Extensions/Interfaces/WebExtensionAPITabs.idl",
-          "quote": "[RaisesException, Dynamic, NeedsPageIdentifier] void insertCSS([Optional] double tabID, [NSDictionary] any details, [Optional, CallbackHandler] function callback);"
+          "line": 577,
+          "path": "Source/WebKit/WebProcess/Extensions/API/Cocoa/WebExtensionAPITabsCocoa.mm",
+          "quote": "static NeverDestroyed<HashSet<AtomString>> removedInManifestVersion3 { HashSet { AtomString(\"executeScript\"_s), AtomString(\"getSelected\"_s), AtomString(\"insertCSS\"_s), AtomString(\"removeCSS\"_s) } };\n    if (removedInManifestVersion3.get().contains(name))\n        return !context->supportsManifestVersion(3);"
         }
       ],
-      "declarations": [
-        "export function insertCSS(tabID: number, details: browser.TabScriptInjection, callback: () => void): void;",
-        "export function insertCSS(tabID: number, details: browser.TabScriptInjection): Promise<void>;",
-        "export function insertCSS(details: browser.TabScriptInjection, callback: () => void): void;",
-        "export function insertCSS(details: browser.TabScriptInjection): Promise<void>;"
-      ],
+      "declarations": [],
       "idl": {
         "endLine": 103,
         "line": 103,
@@ -6559,23 +6543,18 @@
       "interface": "WebExtensionAPITabs",
       "kind": "operation",
       "member": "insertCSS",
-      "origin": "operation-signature"
+      "origin": "mv3-removed"
     },
     {
       "citations": [
         {
           "absent": false,
-          "line": 104,
-          "path": "Source/WebKit/WebProcess/Extensions/Interfaces/WebExtensionAPITabs.idl",
-          "quote": "[RaisesException, Dynamic, NeedsPageIdentifier] void removeCSS([Optional] double tabID, [NSDictionary] any details, [Optional, CallbackHandler] function callback);"
+          "line": 577,
+          "path": "Source/WebKit/WebProcess/Extensions/API/Cocoa/WebExtensionAPITabsCocoa.mm",
+          "quote": "static NeverDestroyed<HashSet<AtomString>> removedInManifestVersion3 { HashSet { AtomString(\"executeScript\"_s), AtomString(\"getSelected\"_s), AtomString(\"insertCSS\"_s), AtomString(\"removeCSS\"_s) } };\n    if (removedInManifestVersion3.get().contains(name))\n        return !context->supportsManifestVersion(3);"
         }
       ],
-      "declarations": [
-        "export function removeCSS(tabID: number, details: browser.TabScriptInjection, callback: () => void): void;",
-        "export function removeCSS(tabID: number, details: browser.TabScriptInjection): Promise<void>;",
-        "export function removeCSS(details: browser.TabScriptInjection, callback: () => void): void;",
-        "export function removeCSS(details: browser.TabScriptInjection): Promise<void>;"
-      ],
+      "declarations": [],
       "idl": {
         "endLine": 104,
         "line": 104,
@@ -6585,7 +6564,7 @@
       "interface": "WebExtensionAPITabs",
       "kind": "operation",
       "member": "removeCSS",
-      "origin": "operation-signature"
+      "origin": "mv3-removed"
     },
     {
       "citations": [
@@ -7930,6 +7909,38 @@
       "kind": "operation",
       "member": "remove",
       "origin": "operation-signature"
+    },
+    {
+      "citations": [
+        {
+          "absent": false,
+          "line": 90,
+          "path": "Source/WebKit/WebProcess/Extensions/API/WebExtensionAPINamespace.cpp",
+          "quote": "if (name == \"browserAction\"_s)\n        return !extensionContext->supportsManifestVersion(3) && doesDictionaryExist(extensionContext->manifest(), \"browser_action\"_s);"
+        }
+      ],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionAPINamespace",
+      "kind": "attribute",
+      "member": "browserAction",
+      "origin": "mv3-removed"
+    },
+    {
+      "citations": [
+        {
+          "absent": false,
+          "line": 109,
+          "path": "Source/WebKit/WebProcess/Extensions/API/WebExtensionAPINamespace.cpp",
+          "quote": "if (name == \"pageAction\"_s)\n        return !extensionContext->supportsManifestVersion(3) && doesDictionaryExist(extensionContext->manifest(), \"page_action\"_s);"
+        }
+      ],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionAPINamespace",
+      "kind": "attribute",
+      "member": "pageAction",
+      "origin": "mv3-removed"
     }
   ],
   "ref": "0136fa2b7cf669ab6bc8e715727e6a78bf5f24ba",

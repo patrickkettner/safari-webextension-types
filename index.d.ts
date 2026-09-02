@@ -765,7 +765,6 @@ declare namespace browser {
 
     export namespace extension {
         export const inIncognitoContext: boolean;
-        export function getURL(resourcePath: string): string;
         export function getBackgroundPage(): globalThis.Window | null;
         export function getViews(fetchProperties?: browser.ViewFilter): globalThis.Window[];
         export function isAllowedIncognitoAccess(callback: (result: boolean) => void): void;
@@ -946,9 +945,6 @@ declare namespace browser {
         export function get(tabID: number): Promise<browser.Tab>;
         export function getCurrent(callback: (result: browser.Tab | undefined) => void): void;
         export function getCurrent(): Promise<browser.Tab | undefined>;
-        export function getSelected(windowID: number, callback: (result: browser.Tab | undefined) => void): void;
-        export function getSelected(callback: (result: browser.Tab | undefined) => void): void;
-        export function getSelected(windowID?: number): Promise<browser.Tab | undefined>;
         export function duplicate(tabID: number, properties: { active?: boolean; index?: number }, callback: (result: browser.Tab | undefined) => void): void;
         export function duplicate(tabID: number, callback: (result: browser.Tab | undefined) => void): void;
         export function duplicate(tabID: number, properties?: { active?: boolean; index?: number }): Promise<browser.Tab | undefined>;
@@ -991,18 +987,6 @@ declare namespace browser {
         export function captureVisibleTab(options: { format?: string; quality?: number }, callback: (result: string) => void): void;
         export function captureVisibleTab(callback: (result: string) => void): void;
         export function captureVisibleTab(options?: { format?: string; quality?: number }): Promise<string>;
-        export function executeScript(tabID: number, details: browser.TabScriptInjection, callback: (result: unknown[]) => void): void;
-        export function executeScript(tabID: number, details: browser.TabScriptInjection): Promise<unknown[]>;
-        export function executeScript(details: browser.TabScriptInjection, callback: (result: unknown[]) => void): void;
-        export function executeScript(details: browser.TabScriptInjection): Promise<unknown[]>;
-        export function insertCSS(tabID: number, details: browser.TabScriptInjection, callback: () => void): void;
-        export function insertCSS(tabID: number, details: browser.TabScriptInjection): Promise<void>;
-        export function insertCSS(details: browser.TabScriptInjection, callback: () => void): void;
-        export function insertCSS(details: browser.TabScriptInjection): Promise<void>;
-        export function removeCSS(tabID: number, details: browser.TabScriptInjection, callback: () => void): void;
-        export function removeCSS(tabID: number, details: browser.TabScriptInjection): Promise<void>;
-        export function removeCSS(details: browser.TabScriptInjection, callback: () => void): void;
-        export function removeCSS(details: browser.TabScriptInjection): Promise<void>;
         export function sendMessage<T = unknown, R = unknown>(tabID: number, message: T, options: browser.MessageOptions, callback: (result: R) => void): void;
         export function sendMessage<T = unknown, R = unknown>(tabID: number, message: T, callback: (result: R) => void): void;
         export function sendMessage<T = unknown, R = unknown>(tabID: number, message: T, options?: browser.MessageOptions): Promise<R>;
@@ -1091,7 +1075,6 @@ declare namespace chrome {
     export import action = browser.action;
     export import alarms = browser.alarms;
     export import bookmarks = browser.bookmarks;
-    export import browserAction = browser.action;
     export import cookies = browser.cookies;
     export import commands = browser.commands;
     export import contextMenus = browser.menus;
@@ -1103,7 +1086,6 @@ declare namespace chrome {
     export import menus = browser.menus;
     export import notifications = browser.notifications;
     export import offscreen = browser.offscreen;
-    export import pageAction = browser.action;
     export import permissions = browser.permissions;
     export import runtime = browser.runtime;
     export import scripting = browser.scripting;

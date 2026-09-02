@@ -14,6 +14,8 @@ Authoritative TypeScript declarations for Safari WebExtensions, generated direct
 
 By parsing the WebIDL `interface`, `dictionary`, and `enum` declarations from WebKit, this package extracts the exact parameter schemas, optionality, and return types validated by WebKit's Cocoa implementation, emitting clean, standard TypeScript types for Safari extension developers and multi-browser toolchains.
 
+The emitted surface is Manifest V3. WebKit's own `isPropertyAllowed` hides some members from every MV3 extension (`chrome.browserAction`/`chrome.pageAction`, `tabs.executeScript`/`getSelected`/`insertCSS`/`removeCSS`, `extension.getURL`); the generator reads those gates out of the pinned WebKit revision and leaves the corresponding declarations out.
+
 ---
 
 ## Key Characteristics

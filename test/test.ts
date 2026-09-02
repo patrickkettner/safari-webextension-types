@@ -140,9 +140,6 @@ async function testDevTools() {
 }
 
 async function testExtension() {
-    const url: string = browser.extension.getURL("popup.html");
-    assertType<string>(url);
-
     const incognitoAllowed = await browser.extension.isAllowedIncognitoAccess();
     assertType<boolean>(incognitoAllowed);
 

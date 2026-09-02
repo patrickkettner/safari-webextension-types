@@ -37,7 +37,8 @@
     "typecheck": "tsc --project test/tsconfig.json --noEmit",
     "test": "tsc --project test/tsconfig.json --noEmit",
     "prepublishOnly": "echo \"Not published to npm: consumers pin a commit tarball. See CLAUDE.md.\" && exit 1",
-    "test:red": "python3 test/red/run.py"
+    "test:red": "python3 test/red/run.py",
+    "test:mv3-gates": "python3 test/mv3_gate_derivation.py"
   },
   "devDependencies": {
     "typescript": "^5.4.0"

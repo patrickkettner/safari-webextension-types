@@ -145,6 +145,36 @@ ROOT_NAMESPACES = {
     'WebExtensionAPIWindows': 'windows',
 }
 
+CHROME_NAMESPACE_ALIASES = (
+    ('action', 'browser.action'),
+    ('alarms', 'browser.alarms'),
+    ('bookmarks', 'browser.bookmarks'),
+    ('browserAction', 'browser.action'),
+    ('cookies', 'browser.cookies'),
+    ('commands', 'browser.commands'),
+    ('contextMenus', 'browser.menus'),
+    ('declarativeNetRequest', 'browser.declarativeNetRequest'),
+    ('devtools', 'browser.devtools'),
+    ('dom', 'browser.dom'),
+    ('extension', 'browser.extension'),
+    ('i18n', 'browser.i18n'),
+    ('menus', 'browser.menus'),
+    ('notifications', 'browser.notifications'),
+    ('offscreen', 'browser.offscreen'),
+    ('pageAction', 'browser.action'),
+    ('permissions', 'browser.permissions'),
+    ('runtime', 'browser.runtime'),
+    ('scripting', 'browser.scripting'),
+    ('sidebarAction', 'browser.sidebarAction'),
+    ('sidePanel', 'browser.sidePanel'),
+    ('storage', 'browser.storage'),
+    ('tabs', 'browser.tabs'),
+    ('test', 'browser.test'),
+    ('webNavigation', 'browser.webNavigation'),
+    ('webRequest', 'browser.webRequest'),
+    ('windows', 'browser.windows'),
+)
+
 # Namespaces whose WebExtensionAPI<Ns>Cocoa.mm has been read end to end, every
 # operation checked against its callback->call. Membership here is the only
 # thing that makes a verb-rule type trustworthy, because the verb table has
@@ -674,18 +704,12 @@ CONFIRMED_EMPTY_CALLBACKS = {
     ('tabs', 'goForward'): Cite(
         'Source/WebKit/WebProcess/Extensions/API/Cocoa/WebExtensionAPITabsCocoa.mm',
         'WebProcess::singleton().sendWithAsyncReply(Messages::WebExtensionContext::TabsGoForward(webPageProxyIdentifier, tabIdentifer), [protectedThis = Ref { *this }, callback = WTF::move(callback)](Expected<void, WebExtensionError>&& result) {'),
-    ('tabs', 'insertCSS'): Cite(
-        'Source/WebKit/WebProcess/Extensions/API/Cocoa/WebExtensionAPITabsCocoa.mm',
-        'WebProcess::singleton().sendWithAsyncReply(Messages::WebExtensionContext::TabsInsertCSS(webPageProxyIdentifier, tabIdentifier, parameters), [protectedThis = Ref { *this }, callback = WTF::move(callback)](Expected<void, WebExtensionError>&& result) {'),
     ('tabs', 'reload'): Cite(
         'Source/WebKit/WebProcess/Extensions/API/Cocoa/WebExtensionAPITabsCocoa.mm',
         'WebProcess::singleton().sendWithAsyncReply(Messages::WebExtensionContext::TabsReload(webPageProxyIdentifier, tabIdentifer, reloadFromOrigin), [protectedThis = Ref { *this }, callback = WTF::move(callback)](Expected<void, WebExtensionError>&& result) {'),
     ('tabs', 'remove'): Cite(
         'Source/WebKit/WebProcess/Extensions/API/Cocoa/WebExtensionAPITabsCocoa.mm',
         'WebProcess::singleton().sendWithAsyncReply(Messages::WebExtensionContext::TabsRemove(WTF::move(identifiers)), [protectedThis = Ref { *this }, callback = WTF::move(callback)](Expected<void, WebExtensionError>&& result) {'),
-    ('tabs', 'removeCSS'): Cite(
-        'Source/WebKit/WebProcess/Extensions/API/Cocoa/WebExtensionAPITabsCocoa.mm',
-        'WebProcess::singleton().sendWithAsyncReply(Messages::WebExtensionContext::TabsRemoveCSS(webPageProxyIdentifier, tabIdentifier, parameters), [protectedThis = Ref { *this }, callback = WTF::move(callback)](Expected<void, WebExtensionError>&& result) {'),
     ('tabs', 'setZoom'): Cite(
         'Source/WebKit/WebProcess/Extensions/API/Cocoa/WebExtensionAPITabsCocoa.mm',
         'WebProcess::singleton().sendWithAsyncReply(Messages::WebExtensionContext::TabsSetZoom(webPageProxyIdentifier, tabIdentifer, zoomFactor), [protectedThis = Ref { *this }, callback = WTF::move(callback)](Expected<void, WebExtensionError>&& result) {'),
@@ -1156,6 +1180,44 @@ INTERFACE_SKIPS = {
         'the panel object devtools.panels.create yields; the callback parameter '
         'is declared as Record<string, unknown> rather than this interface',
 }
+
+
+# ---------------------------------------------------------------------------
+# Manifest V3 gates
+#
+# WebKit's isPropertyAllowed hides some members from every MV3 extension, in
+# two shapes: a name gated in its own `if` branch, or several names sharing
+# one `removedInManifestVersion3` HashSet. derive_mv3_removed_names parses
+# either shape at the generation ref and returns {name: verbatim gate text}.
+# ---------------------------------------------------------------------------
+
+WEBEXTENSION_API_NAMESPACE_CPP = (
+    'Source/WebKit/WebProcess/Extensions/API/WebExtensionAPINamespace.cpp')
+EXTENSION_COCOA = 'Source/WebKit/WebProcess/Extensions/API/Cocoa/WebExtensionAPIExtensionCocoa.mm'
+
+_MV3_DIRECT_GATE_RE = re.compile(
+    r'if \(name == "(?P<name>\w+)"_s\)\s*\n\s*'
+    r'return (?P<gate>![^;\n]*supportsManifestVersion\(3\)[^;\n]*);'
+)
+_MV3_SET_GATE_RE = re.compile(
+    r'static NeverDestroyed<HashSet<AtomString>> removedInManifestVersion3 '
+    r'\{ HashSet \{ (?P<names>AtomString\("\w+"_s\)(?:, AtomString\("\w+"_s\))*) \} \};'
+    r'\s*\n\s*if \(removedInManifestVersion3\.get\(\)\.contains\(name\)\)\s*\n\s*'
+    r'return (?P<gate>![^;\n]*supportsManifestVersion\(3\)[^;\n]*);'
+)
+_ATOM_STRING_RE = re.compile(r'AtomString\("(\w+)"_s\)')
+
+
+def derive_mv3_removed_names(text):
+    """Takes an isPropertyAllowed body; returns {name: verbatim gate text}."""
+    found = {}
+    for m in _MV3_DIRECT_GATE_RE.finditer(text):
+        found[m.group('name')] = m.group(0)
+    for m in _MV3_SET_GATE_RE.finditer(text):
+        gate_text = m.group(0)
+        for name in _ATOM_STRING_RE.findall(m.group('names')):
+            found[name] = gate_text
+    return found
 
 
 # ---------------------------------------------------------------------------
@@ -2095,25 +2157,6 @@ PARAMETER_TYPES = {
              'void WebExtensionAPITabs::reload(WebPageProxyIdentifier webPageProxyIdentifier, double tabID, NSDictionary *properties, Ref<WebExtensionCallbackHandler>&& callback, NSString **outExceptionString)'),
         Cite('Source/WebKit/WebProcess/Extensions/API/Cocoa/WebExtensionAPITabsCocoa.mm',
              'if (properties && !validateDictionary(properties, @"properties", nil, types, outExceptionString))'),)),
-    ('tabs', 'executeScript', 'details'): (
-        'browser.TabScriptInjection',
-        (Cite('Source/WebKit/WebProcess/Extensions/API/Cocoa/WebExtensionAPITabsCocoa.mm',
-             'void WebExtensionAPITabs::executeScript(WebPageProxyIdentifier webPageProxyIdentifier, double tabID, NSDictionary *options, Ref<WebExtensionCallbackHandler> && callback, NSString **outExceptionString)'),
-        Cite('Source/WebKit/WebProcess/Extensions/API/Cocoa/WebExtensionAPITabsCocoa.mm',
-             'if (options && !parseScriptOptions(options, parameters, outExceptionString))'),)),
-    ('tabs', 'insertCSS', 'details'): (
-        'browser.TabScriptInjection',
-        (Cite('Source/WebKit/WebProcess/Extensions/API/Cocoa/WebExtensionAPITabsCocoa.mm',
-             'void WebExtensionAPITabs::insertCSS(WebPageProxyIdentifier webPageProxyIdentifier, double tabID, NSDictionary *options, Ref<WebExtensionCallbackHandler> && callback, NSString **outExceptionString)'),
-        Cite('Source/WebKit/WebProcess/Extensions/API/Cocoa/WebExtensionAPITabsCocoa.mm',
-             'if (options && !parseScriptOptions(options, parameters, outExceptionString))'),)),
-    ('tabs', 'removeCSS', 'details'): (
-        'browser.TabScriptInjection',
-        (Cite('Source/WebKit/WebProcess/Extensions/API/Cocoa/WebExtensionAPITabsCocoa.mm',
-             'void WebExtensionAPITabs::removeCSS(WebPageProxyIdentifier webPageProxyIdentifier, double tabID, NSDictionary *options, Ref<WebExtensionCallbackHandler> && callback, NSString **outExceptionString)'),
-        Cite('Source/WebKit/WebProcess/Extensions/API/Cocoa/WebExtensionAPITabsCocoa.mm',
-             'if (options && !parseScriptOptions(options, parameters, outExceptionString))'),)),
-
     # cookies: every operation runs parseCookieDetails, which accepts
     # {name, storeId, url} and takes its required keys from the caller. get and
     # remove require name and url, set requires url, getAll requires nothing and
@@ -2425,11 +2468,6 @@ RETURN_EVIDENCE = {
              'JSValue *WebExtensionAPIDOM::openOrClosedShadowRoot(JSValue *element)'),
         Cite('Source/WebKit/WebProcess/Extensions/API/Cocoa/WebExtensionAPIDOMCocoa.mm',
              'return [element valueForProperty:@"openOrClosedShadowRoot"];'),),
-    ('extension', 'getURL'): (
-        Cite('Source/WebKit/WebProcess/Extensions/API/Cocoa/WebExtensionAPIExtensionCocoa.mm',
-             'NSURL *WebExtensionAPIExtension::getURL(NSString *resourcePath, NSString **outExceptionString)'),
-        Cite('Source/WebKit/WebProcess/Extensions/API/Cocoa/WebExtensionAPIExtensionCocoa.mm',
-             'return URL { extensionContext().baseURL(), resourcePath }.createNSURL().autorelease();'),),
     ('extension', 'isAllowedFileSchemeAccess'): (
         Cite('Source/WebKit/WebProcess/Extensions/API/Cocoa/WebExtensionAPIExtensionCocoa.mm',
              'void WebExtensionAPIExtension::isAllowedFileSchemeAccess(Ref<WebExtensionCallbackHandler>&& callback)'),
@@ -2579,11 +2617,6 @@ RETURN_EVIDENCE = {
              'void WebExtensionAPITabs::duplicate(double tabID, NSDictionary *properties, Ref<WebExtensionCallbackHandler>&& callback, NSString **outExceptionString)'),
         Cite('Source/WebKit/WebProcess/Extensions/API/Cocoa/WebExtensionAPITabsCocoa.mm',
              'callback->call(toJSValueRef(callback->globalContext(), toWebAPI(result.value())));'),),
-    ('tabs', 'executeScript'): (
-        Cite('Source/WebKit/WebProcess/Extensions/API/Cocoa/WebExtensionAPITabsCocoa.mm',
-             'void WebExtensionAPITabs::executeScript(WebPageProxyIdentifier webPageProxyIdentifier, double tabID, NSDictionary *options, Ref<WebExtensionCallbackHandler> && callback, NSString **outExceptionString)'),
-        Cite('Source/WebKit/WebProcess/Extensions/API/Cocoa/WebExtensionAPITabsCocoa.mm',
-             'callback->call(toJSValueRef(callback->globalContext(), toWebAPI(result.value(), true)));'),),
     ('tabs', 'get'): (
         Cite('Source/WebKit/WebProcess/Extensions/API/Cocoa/WebExtensionAPITabsCocoa.mm',
              'void WebExtensionAPITabs::get(double tabID, Ref<WebExtensionCallbackHandler>&& callback, NSString **outExceptionString)'),
@@ -2594,11 +2627,6 @@ RETURN_EVIDENCE = {
              'void WebExtensionAPITabs::getCurrent(WebPageProxyIdentifier webPageProxyIdentifier, Ref<WebExtensionCallbackHandler>&& callback)'),
         Cite('Source/WebKit/WebProcess/Extensions/API/Cocoa/WebExtensionAPITabsCocoa.mm',
              'callback->call(toJSValueRef(callback->globalContext(), toWebAPI(result.value())));'),),
-    ('tabs', 'getSelected'): (
-        Cite('Source/WebKit/WebProcess/Extensions/API/Cocoa/WebExtensionAPITabsCocoa.mm',
-             'void WebExtensionAPITabs::getSelected(WebPageProxyIdentifier webPageProxyIdentifier, double windowID, Ref<WebExtensionCallbackHandler>&& callback, NSString **outExceptionString)'),
-        Cite('Source/WebKit/WebProcess/Extensions/API/Cocoa/WebExtensionAPITabsCocoa.mm',
-             'callback->call(toJSValueRef(callback->globalContext(), toWebAPI(tabs.first())));'),),
     ('tabs', 'getZoom'): (
         Cite('Source/WebKit/WebProcess/Extensions/API/Cocoa/WebExtensionAPITabsCocoa.mm',
              'void WebExtensionAPITabs::getZoom(WebPageProxyIdentifier webPageProxyIdentifier, double tabID, Ref<WebExtensionCallbackHandler>&& callback, NSString **outExceptionString)'),
@@ -3257,6 +3285,22 @@ class Reconciler:
                 f'The reason it records no longer applies to anything.'
             )
 
+        unused_empty = sorted(set(CONFIRMED_EMPTY_CALLBACKS) - EMPTY_CALLBACK_USED)
+        for ns_name, op_name in unused_empty:
+            errors.append(
+                f'CONFIRMED_EMPTY_CALLBACKS[{ns_name!r}, {op_name!r}] matched no '
+                f'operation. The operation was removed or renamed and this entry '
+                f'no longer describes anything.'
+            )
+
+        unused_params = sorted(set(PARAMETER_TYPES) - PARAMETER_TYPES_USED)
+        for ns_name, op_name, arg_name in unused_params:
+            errors.append(
+                f'PARAMETER_TYPES[{ns_name!r}, {op_name!r}, {arg_name!r}] matched '
+                f'no parameter. The operation was removed or renamed and this '
+                f'entry no longer describes anything.'
+            )
+
         unaccounted = sorted(
             (iface, member, kind)
             for (iface, member), kind in self.declared.items()
@@ -3398,7 +3442,12 @@ def emit_interface_members(out, sub, iface_data, reconciler, spaces):
                               declaration=member.get('declaration'))
 
 
-def emit_namespace_members(out, iface_name, iface_data, ns_name, reconciler, available_dicts):
+def emit_namespace_members(out, iface_name, iface_data, ns_name, reconciler, available_dicts,
+                            mv3_removed):
+    """`mv3_removed` is (path, {op_name: verbatim gate text}) for this
+    interface's isPropertyAllowed, or None. An operation named there is
+    hidden from every MV3 extension and is skipped, citing the gate that
+    hides it."""
     for c in iface_data['constants']:
         key = (iface_name, c['name'])
         override = SIGNATURE_OVERRIDES.get(key)
@@ -3455,6 +3504,12 @@ def emit_namespace_members(out, iface_name, iface_data, ns_name, reconciler, ava
             reconciler.record(iface_name, op['name'], 'operation', 'skipped', [],
                               declaration=op.get('declaration'))
             continue
+        elif mv3_removed and op['name'] in mv3_removed[1]:
+            gate_path, gates = mv3_removed
+            reconciler.record(iface_name, op['name'], 'operation', 'mv3-removed', [],
+                              cites=(Cite(gate_path, gates[op['name']]),),
+                              declaration=op.get('declaration'))
+            continue
         else:
             lines, origin = derive_operation_lines(ns_name, op, available_dicts)
             cites = (DECLARATION,)
@@ -3463,7 +3518,8 @@ def emit_namespace_members(out, iface_name, iface_data, ns_name, reconciler, ava
                           op.get('declaration'))
 
 
-def generate_dts(idl_dir: pathlib.Path, reconciler: 'Reconciler', source: str) -> str:
+def generate_dts(idl_dir: pathlib.Path, reconciler: 'Reconciler', source: str,
+                  resolver: 'SourceResolver') -> str:
     PARAM_DERIVATIONS.clear()
     EMPTY_CALLBACK_USED.clear()
     PARAMETER_TYPES_USED.clear()
@@ -3472,6 +3528,22 @@ def generate_dts(idl_dir: pathlib.Path, reconciler: 'Reconciler', source: str) -
     all_enums = {}
     all_dicts = {}
     all_ifaces = {}
+
+    # See "Manifest V3 gates" above.
+    def read_mv3_gates(path):
+        text = resolver.read(path)
+        removed = derive_mv3_removed_names(text)
+        if 'supportsManifestVersion(3)' in text and not removed:
+            raise ReconciliationError(
+                f'{path} still guards on supportsManifestVersion(3) but '
+                f'derive_mv3_removed_names matched nothing in it.')
+        return removed
+
+    mv3_namespace_removed = read_mv3_gates(WEBEXTENSION_API_NAMESPACE_CPP)
+    mv3_removed_by_iface = {
+        'WebExtensionAPITabs': (TABS_COCOA, read_mv3_gates(TABS_COCOA)),
+        'WebExtensionAPIExtension': (EXTENSION_COCOA, read_mv3_gates(EXTENSION_COCOA)),
+    }
 
     for p in sorted(idl_dir.glob('*.idl')):
         e, d, i = parse_idl_file(p)
@@ -3594,42 +3666,24 @@ def generate_dts(idl_dir: pathlib.Path, reconciler: 'Reconciler', source: str) -
         ns_name = ROOT_NAMESPACES[iface_name]
         lines.append(f'    export namespace {ns_name} {{')
         emit_namespace_members(lines, iface_name, iface_data, ns_name, reconciler,
-                               dict_short_names)
+                               dict_short_names,
+                               mv3_removed_by_iface.get(iface_name))
         lines.append('    }')
         lines.append('')
 
     lines.append('}')
     lines.append('')
 
-    # Chrome namespace alias
+    # Skips a name mv3_namespace_removed hides; see "Manifest V3 gates" above.
     lines.append('declare namespace chrome {')
-    lines.append('    export import action = browser.action;')
-    lines.append('    export import alarms = browser.alarms;')
-    lines.append('    export import bookmarks = browser.bookmarks;')
-    lines.append('    export import browserAction = browser.action;')
-    lines.append('    export import cookies = browser.cookies;')
-    lines.append('    export import commands = browser.commands;')
-    lines.append('    export import contextMenus = browser.menus;')
-    lines.append('    export import declarativeNetRequest = browser.declarativeNetRequest;')
-    lines.append('    export import devtools = browser.devtools;')
-    lines.append('    export import dom = browser.dom;')
-    lines.append('    export import extension = browser.extension;')
-    lines.append('    export import i18n = browser.i18n;')
-    lines.append('    export import menus = browser.menus;')
-    lines.append('    export import notifications = browser.notifications;')
-    lines.append('    export import offscreen = browser.offscreen;')
-    lines.append('    export import pageAction = browser.action;')
-    lines.append('    export import permissions = browser.permissions;')
-    lines.append('    export import runtime = browser.runtime;')
-    lines.append('    export import scripting = browser.scripting;')
-    lines.append('    export import sidebarAction = browser.sidebarAction;')
-    lines.append('    export import sidePanel = browser.sidePanel;')
-    lines.append('    export import storage = browser.storage;')
-    lines.append('    export import tabs = browser.tabs;')
-    lines.append('    export import test = browser.test;')
-    lines.append('    export import webNavigation = browser.webNavigation;')
-    lines.append('    export import webRequest = browser.webRequest;')
-    lines.append('    export import windows = browser.windows;')
+    for chrome_name, target in CHROME_NAMESPACE_ALIASES:
+        if chrome_name in mv3_namespace_removed:
+            reconciler.record('WebExtensionAPINamespace', chrome_name, 'attribute',
+                              'mv3-removed', [],
+                              cites=(Cite(WEBEXTENSION_API_NAMESPACE_CPP,
+                                          mv3_namespace_removed[chrome_name]),))
+            continue
+        lines.append(f'    export import {chrome_name} = {target};')
     lines.append('}')
     lines.append('')
 
@@ -3868,7 +3922,7 @@ def main():
     with tempfile.TemporaryDirectory() as tmp_dir:
         tmp_path = pathlib.Path(tmp_dir)
         fetch_upstream_idls(tmp_path, resolver)
-        dts_content = generate_dts(tmp_path, reconciler, f'{args.repo}@{args.ref}')
+        dts_content = generate_dts(tmp_path, reconciler, f'{args.repo}@{args.ref}', resolver)
 
     reconciler.check()
     evidenced = reconciler.check_read_namespaces_are_read()

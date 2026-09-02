@@ -93,6 +93,13 @@ def unresolved_payload(common):
         "    if ns_name == 'windows' and op_name == 'getLastFocused':\n        return 'browser.Window'\n", '', 1))
 
 
+@case('an MV3 gate the parser no longer recognises fails the build',
+      'derive_mv3_removed_names matched nothing in it')
+def mv3_gate_unrecognised(common):
+    return run(common, mutate=lambda s: s.replace(
+        r'\{ HashSet \{ (?P<names>', r'\{ HashSetX \{ (?P<names>', 1))
+
+
 @case('a namespace dropped from READ_NAMESPACES lands in unverified-returns',
       'in a namespace nobody has read and is not in unverified-returns.txt')
 def unverified_return_grows(common):
@@ -103,7 +110,13 @@ def unverified_return_grows(common):
       'is typed by matching composed candidate names')
 def unverified_parameter_grows(common):
     return run(common, mutate=lambda s: s.replace(
-        "    ('permissions', 'contains', 'permissions'): (", "    ('permissions', 'containsX', 'permissions'): (", 1))
+        "    ('permissions', 'contains', 'permissions'): (\n"
+        "        'browser.Permissions',\n"
+        "        (Cite('Source/WebKit/WebProcess/Extensions/API/Cocoa/WebExtensionAPIPermissionsCocoa.mm',\n"
+        "             'void WebExtensionAPIPermissions::contains(NSDictionary *details, Ref<WebExtensionCallbackHandler>&& callback, NSString **outExceptionString)'),\n"
+        "        Cite('Source/WebKit/WebProcess/Extensions/API/Cocoa/WebExtensionAPIPermissionsCocoa.mm',\n"
+        "             'if (!parseDetailsDictionary(details, permissions, origins, apiName, outExceptionString))'),)),\n",
+        "", 1))
 
 
 @case('a ratchet entry that no longer qualifies fails the build',
@@ -142,6 +155,31 @@ def invented_dictionary_member(common):
       'is not in KNOWN_IDL_FILES')
 def missing_idl_file(common):
     return run(common, mutate=lambda s: s.replace("    'WebExtensionAPIAlarms.idl',\n", '', 1))
+
+
+@case('an empty-callback entry naming an operation nothing reads fails the build',
+      'matched no operation')
+def unused_empty_callback(common):
+    return run(common, mutate=lambda s: s.replace(
+        "    ('tabs', 'goBack'): Cite(",
+        "    ('tabs', 'goBackNoSuchOperation'): Cite(\n"
+        "        'Source/WebKit/WebProcess/Extensions/API/Cocoa/WebExtensionAPITabsCocoa.mm',\n"
+        "        'WebProcess::singleton().sendWithAsyncReply(Messages::WebExtensionContext::TabsGoBack(webPageProxyIdentifier, tabIdentifer), [protectedThis = Ref { *this }, callback = WTF::move(callback)](Expected<void, WebExtensionError>&& result) {'),\n"
+        "    ('tabs', 'goBack'): Cite(", 1))
+
+
+@case('a parameter-type entry naming a parameter nothing reads fails the build',
+      'matched no parameter')
+def unused_parameter_type(common):
+    return run(common, mutate=lambda s: s.replace(
+        "    ('cookies', 'get', 'details'): (",
+        "    ('cookies', 'get', 'detailsNoSuchParameter'): (\n"
+        "        '{ name: string; url: string; storeId?: string }',\n"
+        "        (Cite('Source/WebKit/WebProcess/Extensions/API/Cocoa/WebExtensionAPICookiesCocoa.mm',\n"
+        "             'void WebExtensionAPICookies::get(NSDictionary *details, Ref<WebExtensionCallbackHandler>&& callback, NSString **outExceptionString)'),\n"
+        "        Cite('Source/WebKit/WebProcess/Extensions/API/Cocoa/WebExtensionAPICookiesCocoa.mm',\n"
+        "             'auto parsedDetails = parseCookieDetails(details, @[ @\"name\", urlKey ], outExceptionString);'),)),\n"
+        "    ('cookies', 'get', 'details'): (", 1))
 
 
 def main():
