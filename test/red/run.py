@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
-"""Proves each gate can go red.
+"""Proves each gate can go red, and that a two-sided gate does not go red on
+its non-error side.
 
 A gate that has never been seen to fail is theatre until shown otherwise; the
 parse-coverage gate here reported success twice while measuring nothing. Each
-case below feeds the generator an input that must fail with a named error, and
-this script fails if the generator does not.
+CASES entry feeds the generator an input that must fail with a named error,
+and this script fails if the generator does not. A GREEN_CASES entry must not
+fail; it is checked against what generation recorded instead of against an
+error string.
 
 Every case runs against the pinned revision through the same resolver the real
 build uses. `--webkit-checkout` is honoured when given, so this is fast locally
@@ -12,6 +15,7 @@ and still works over the network in CI.
 """
 
 import argparse
+import json
 import pathlib
 import subprocess
 import sys
@@ -47,11 +51,21 @@ def run(extra_args, mutate=None):
 
 
 CASES = []
+GREEN_CASES = []
 
 
 def case(name, must_contain):
     def register(fn):
         CASES.append((name, must_contain, fn))
+        return fn
+    return register
+
+
+def green_case(name):
+    """Registers an input that must not fail the build, checked against what
+    generation recorded."""
+    def register(fn):
+        GREEN_CASES.append((name, fn))
         return fn
     return register
 
@@ -157,6 +171,89 @@ def missing_idl_file(common):
     return run(common, mutate=lambda s: s.replace("    'WebExtensionAPIAlarms.idl',\n", '', 1))
 
 
+@case('an interface file the ship ref has and the list does not fails the build',
+      'is not in KNOWN_IDL_FILES')
+def missing_ship_idl_file(common):
+    # Proves the ship-side check_idl_file_list call is fatal on its own.
+    return run(common, mutate=lambda s: s.replace(
+        "    listed, absent = check_idl_file_list(resolver)",
+        "    KNOWN_IDL_FILES.remove(sorted(KNOWN_IDL_FILES)[0])\n"
+        "    listed, absent = check_idl_file_list(resolver)", 1))
+
+
+@case('--ship-ref without --ship-version fails the build',
+      '--ship-ref and --ship-version must be given together')
+def ship_ref_without_version(common):
+    return run(['--ship-ref', 'WebKit-7624.1.16', *common])
+
+
+@green_case('a KNOWN_IDL_FILES entry the revision does not have builds clean '
+            'and lands in provenance as absent-at-ref')
+def absent_known_idl_file(common):
+    with tempfile.TemporaryDirectory() as tmp:
+        script = pathlib.Path(tmp) / 'generate.py'
+        script.write_text(GENERATE.read_text().replace(
+            "    'WebExtensionAPIWindows.idl',\n",
+            "    'WebExtensionAPIWindows.idl',\n"
+            "    'WebExtensionAPINotThere.idl',\n", 1))
+        provenance = pathlib.Path(tmp) / 'p.json'
+        result = subprocess.run(
+            [sys.executable, str(script),
+             '--output', str(pathlib.Path(tmp) / 'out.d.ts'),
+             '--provenance', str(provenance),
+             '--unresolved-payloads', str(ROOT / 'unresolved-payloads.txt'),
+             '--unverified-returns', str(ROOT / 'unverified-returns.txt'),
+             '--unverified-parameters', str(ROOT / 'unverified-parameters.txt'),
+             '--cache-dir', str(ROOT / '.idls-cache'),
+             *common],
+            capture_output=True, text=True, cwd=str(ROOT))
+        if result.returncode != 0:
+            return False, f'exited {result.returncode}:\n{result.stdout}{result.stderr}'
+        members = json.loads(provenance.read_text())['members']
+        hit = next((m for m in members
+                    if m['interface'] == 'WebExtensionAPINotThere'
+                    and m['origin'] == 'absent-at-ref'), None)
+        if hit is None:
+            return False, 'no absent-at-ref provenance entry for WebExtensionAPINotThere'
+        return True, 'ok'
+
+
+@green_case('a member the main ref declares and the ship ref does not is left '
+            'out of index.d.ts and lands in provenance as unshipped')
+def unshipped_member(common):
+    with tempfile.TemporaryDirectory() as tmp:
+        script = pathlib.Path(tmp) / 'generate.py'
+        script.write_text(GENERATE.read_text().replace(
+            "    ship_dicts = {name: set(data['members']) for name, data in dicts.items()}",
+            "    ship_ifaces['WebExtensionAPITabs']['operations'].discard('query')\n"
+            "    ship_dicts = {name: set(data['members']) for name, data in dicts.items()}",
+            1))
+        out = pathlib.Path(tmp) / 'out.d.ts'
+        provenance = pathlib.Path(tmp) / 'p.json'
+        result = subprocess.run(
+            [sys.executable, str(script),
+             '--output', str(out),
+             '--provenance', str(provenance),
+             '--unresolved-payloads', str(ROOT / 'unresolved-payloads.txt'),
+             '--unverified-returns', str(ROOT / 'unverified-returns.txt'),
+             '--unverified-parameters', str(ROOT / 'unverified-parameters.txt'),
+             '--cache-dir', str(ROOT / '.idls-cache'),
+             *common],
+            capture_output=True, text=True, cwd=str(ROOT))
+        if result.returncode != 0:
+            return False, f'exited {result.returncode}:\n{result.stdout}{result.stderr}'
+        members = json.loads(provenance.read_text())['members']
+        hit = next((m for m in members
+                    if m['interface'] == 'WebExtensionAPITabs'
+                    and m['member'] == 'query'
+                    and m['origin'] == 'unshipped'), None)
+        if hit is None:
+            return False, 'no unshipped provenance entry for WebExtensionAPITabs.query'
+        if 'export function query(info: browser.TabQueryOptions' in out.read_text():
+            return False, 'tabs.query is still emitted in index.d.ts'
+        return True, 'ok'
+
+
 @case('an empty-callback entry naming an operation nothing reads fails the build',
       'matched no operation')
 def unused_empty_callback(common):
@@ -200,7 +297,15 @@ def main():
             failures += 1
         else:
             print(f'red      {name}')
-    print(f'{len(CASES) - failures} of {len(CASES)} gates proven red.')
+    for name, fn in GREEN_CASES:
+        ok, detail = fn(common)
+        if ok:
+            print(f'green    {name}')
+        else:
+            print(f'NOT GREEN  {name}: {detail}')
+            failures += 1
+    total = len(CASES) + len(GREEN_CASES)
+    print(f'{total - failures} of {total} gates verified.')
     sys.exit(1 if failures else 0)
 
 

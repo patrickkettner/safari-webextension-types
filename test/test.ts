@@ -200,19 +200,6 @@ async function testNotifications() {
     browser.notifications.onClicked.addListener(() => {});
 }
 
-async function testOffscreen() {
-    await browser.offscreen.createDocument({
-        url: "offscreen.html",
-        reasons: ["AUDIO_PLAYBACK"],
-        justification: "Play background sound notification"
-    });
-
-    const exists = await browser.offscreen.hasDocument();
-    assertType<boolean>(exists);
-
-    await browser.offscreen.closeDocument();
-}
-
 async function testPermissions() {
     const hasPerm = await browser.permissions.contains({
         permissions: ["storage", "tabs"],
@@ -288,8 +275,6 @@ async function testScripting() {
         func: () => document.title
     });
     assertType<browser.InjectionResult[]>(results);
-
-    assertType<"ISOLATED" | "MAIN">(browser.scripting.ExecutionWorld.ISOLATED);
 
     await browser.scripting.insertCSS({
         target: { tabId: 1 },
@@ -533,7 +518,6 @@ export {
     testI18n,
     testMenus,
     testNotifications,
-    testOffscreen,
     testPermissions,
     testRuntime,
     testScripting,

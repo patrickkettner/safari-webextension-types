@@ -1797,6 +1797,321 @@
       "origin": "entity"
     },
     {
+      "citations": [],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionCSSOrigin",
+      "kind": "enum",
+      "member": "WebExtensionCSSOrigin",
+      "origin": "shape-from-main"
+    },
+    {
+      "citations": [],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionCookieSameSiteStatus",
+      "kind": "enum",
+      "member": "WebExtensionCookieSameSiteStatus",
+      "origin": "shape-from-main"
+    },
+    {
+      "citations": [],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionMenuItemContextType",
+      "kind": "enum",
+      "member": "WebExtensionMenuItemContextType",
+      "origin": "shape-from-main"
+    },
+    {
+      "citations": [],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionMenuItemType",
+      "kind": "enum",
+      "member": "WebExtensionMenuItemType",
+      "origin": "shape-from-main"
+    },
+    {
+      "citations": [],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionOffscreenReason",
+      "kind": "enum",
+      "member": "WebExtensionOffscreenReason",
+      "origin": "shape-from-main"
+    },
+    {
+      "citations": [],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionPortDisconnectReason",
+      "kind": "enum",
+      "member": "WebExtensionPortDisconnectReason",
+      "origin": "shape-from-main"
+    },
+    {
+      "citations": [],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionScriptInjectionExecutionWorld",
+      "kind": "enum",
+      "member": "WebExtensionScriptInjectionExecutionWorld",
+      "origin": "shape-from-main"
+    },
+    {
+      "citations": [],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionTabStatus",
+      "kind": "enum",
+      "member": "WebExtensionTabStatus",
+      "origin": "shape-from-main"
+    },
+    {
+      "citations": [],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionWebRequestResourceType",
+      "kind": "enum",
+      "member": "WebExtensionWebRequestResourceType",
+      "origin": "shape-from-main"
+    },
+    {
+      "citations": [],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionWindowState",
+      "kind": "enum",
+      "member": "WebExtensionWindowState",
+      "origin": "shape-from-main"
+    },
+    {
+      "citations": [],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionWindowType",
+      "kind": "enum",
+      "member": "WebExtensionWindowType",
+      "origin": "shape-from-main"
+    },
+    {
+      "citations": [],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionActionDetails",
+      "kind": "dictionary",
+      "member": "WebExtensionActionDetails",
+      "origin": "shape-from-main"
+    },
+    {
+      "citations": [],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionActionOpenPopupOptions",
+      "kind": "dictionary",
+      "member": "WebExtensionActionOpenPopupOptions",
+      "origin": "shape-from-main"
+    },
+    {
+      "citations": [],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionActionSetBadgeBackgroundColorDetails",
+      "kind": "dictionary",
+      "member": "WebExtensionActionSetBadgeBackgroundColorDetails",
+      "origin": "shape-from-main"
+    },
+    {
+      "citations": [],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionActionSetBadgeTextDetails",
+      "kind": "dictionary",
+      "member": "WebExtensionActionSetBadgeTextDetails",
+      "origin": "shape-from-main"
+    },
+    {
+      "citations": [],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionActionSetIconDetails",
+      "kind": "dictionary",
+      "member": "WebExtensionActionSetIconDetails",
+      "origin": "shape-from-main"
+    },
+    {
+      "citations": [],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionActionSetPopupDetails",
+      "kind": "dictionary",
+      "member": "WebExtensionActionSetPopupDetails",
+      "origin": "shape-from-main"
+    },
+    {
+      "citations": [],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionActionSetTitleDetails",
+      "kind": "dictionary",
+      "member": "WebExtensionActionSetTitleDetails",
+      "origin": "shape-from-main"
+    },
+    {
+      "citations": [],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionAlarm",
+      "kind": "dictionary",
+      "member": "WebExtensionAlarm",
+      "origin": "shape-from-main"
+    },
+    {
+      "citations": [],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionAlarmCreateInfo",
+      "kind": "dictionary",
+      "member": "WebExtensionAlarmCreateInfo",
+      "origin": "shape-from-main"
+    },
+    {
+      "citations": [],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionBookmarkChanges",
+      "kind": "dictionary",
+      "member": "WebExtensionBookmarkChanges",
+      "origin": "shape-from-main"
+    },
+    {
+      "citations": [],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionBookmarkCreateDetails",
+      "kind": "dictionary",
+      "member": "WebExtensionBookmarkCreateDetails",
+      "origin": "shape-from-main"
+    },
+    {
+      "citations": [],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionBookmarkDestination",
+      "kind": "dictionary",
+      "member": "WebExtensionBookmarkDestination",
+      "origin": "shape-from-main"
+    },
+    {
+      "citations": [],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionBookmarkSearchQuery",
+      "kind": "dictionary",
+      "member": "WebExtensionBookmarkSearchQuery",
+      "origin": "shape-from-main"
+    },
+    {
+      "citations": [],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionBookmarkTreeNode",
+      "kind": "dictionary",
+      "member": "WebExtensionBookmarkTreeNode",
+      "origin": "shape-from-main"
+    },
+    {
+      "citations": [],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionCSSInjection",
+      "kind": "dictionary",
+      "member": "WebExtensionCSSInjection",
+      "origin": "shape-from-main"
+    },
+    {
+      "citations": [],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionCommand",
+      "kind": "dictionary",
+      "member": "WebExtensionCommand",
+      "origin": "shape-from-main"
+    },
+    {
+      "citations": [],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionConnectOptions",
+      "kind": "dictionary",
+      "member": "WebExtensionConnectOptions",
+      "origin": "shape-from-main"
+    },
+    {
+      "citations": [],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionCookie",
+      "kind": "dictionary",
+      "member": "WebExtensionCookie",
+      "origin": "shape-from-main"
+    },
+    {
+      "citations": [],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionCookieDetails",
+      "kind": "dictionary",
+      "member": "WebExtensionCookieDetails",
+      "origin": "shape-from-main"
+    },
+    {
+      "citations": [],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionCookieGetAllDetails",
+      "kind": "dictionary",
+      "member": "WebExtensionCookieGetAllDetails",
+      "origin": "shape-from-main"
+    },
+    {
+      "citations": [],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionCookieSetDetails",
+      "kind": "dictionary",
+      "member": "WebExtensionCookieSetDetails",
+      "origin": "shape-from-main"
+    },
+    {
+      "citations": [],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionDNRMatchedRule",
+      "kind": "dictionary",
+      "member": "WebExtensionDNRMatchedRule",
+      "origin": "shape-from-main"
+    },
+    {
+      "citations": [],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionDNRMatchedRulesFilter",
+      "kind": "dictionary",
+      "member": "WebExtensionDNRMatchedRulesFilter",
+      "origin": "shape-from-main"
+    },
+    {
+      "citations": [],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionDNRTabUpdateOptions",
+      "kind": "dictionary",
+      "member": "WebExtensionDNRTabUpdateOptions",
+      "origin": "shape-from-main"
+    },
+    {
       "citations": [
         {
           "absent": false,
@@ -1837,6 +2152,294 @@
       "kind": "dictionary-member",
       "member": "tabId",
       "origin": "corrected"
+    },
+    {
+      "citations": [],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionDNRUpdateRuleOptions",
+      "kind": "dictionary",
+      "member": "WebExtensionDNRUpdateRuleOptions",
+      "origin": "shape-from-main"
+    },
+    {
+      "citations": [],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionDevToolsEvalOptions",
+      "kind": "dictionary",
+      "member": "WebExtensionDevToolsEvalOptions",
+      "origin": "shape-from-main"
+    },
+    {
+      "citations": [],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionDevToolsReloadOptions",
+      "kind": "dictionary",
+      "member": "WebExtensionDevToolsReloadOptions",
+      "origin": "shape-from-main"
+    },
+    {
+      "citations": [],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionLanguageDetectionResult",
+      "kind": "dictionary",
+      "member": "WebExtensionLanguageDetectionResult",
+      "origin": "shape-from-main"
+    },
+    {
+      "citations": [],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionMenuItemProperties",
+      "kind": "dictionary",
+      "member": "WebExtensionMenuItemProperties",
+      "origin": "shape-from-main"
+    },
+    {
+      "citations": [],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionMessageOptions",
+      "kind": "dictionary",
+      "member": "WebExtensionMessageOptions",
+      "origin": "shape-from-main"
+    },
+    {
+      "citations": [],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionMessageSender",
+      "kind": "dictionary",
+      "member": "WebExtensionMessageSender",
+      "origin": "shape-from-main"
+    },
+    {
+      "citations": [],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionOffscreenCreateParameters",
+      "kind": "dictionary",
+      "member": "WebExtensionOffscreenCreateParameters",
+      "origin": "shape-from-main"
+    },
+    {
+      "citations": [],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionPermissions",
+      "kind": "dictionary",
+      "member": "WebExtensionPermissions",
+      "origin": "shape-from-main"
+    },
+    {
+      "citations": [],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionScriptInjection",
+      "kind": "dictionary",
+      "member": "WebExtensionScriptInjection",
+      "origin": "shape-from-main"
+    },
+    {
+      "citations": [],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionScriptInjectionTarget",
+      "kind": "dictionary",
+      "member": "WebExtensionScriptInjectionTarget",
+      "origin": "shape-from-main"
+    },
+    {
+      "citations": [],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionSendMessageOptions",
+      "kind": "dictionary",
+      "member": "WebExtensionSendMessageOptions",
+      "origin": "shape-from-main"
+    },
+    {
+      "citations": [],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionSidePanelBehavior",
+      "kind": "dictionary",
+      "member": "WebExtensionSidePanelBehavior",
+      "origin": "shape-from-main"
+    },
+    {
+      "citations": [],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionSidePanelOptions",
+      "kind": "dictionary",
+      "member": "WebExtensionSidePanelOptions",
+      "origin": "shape-from-main"
+    },
+    {
+      "citations": [],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionSidebarActionDetails",
+      "kind": "dictionary",
+      "member": "WebExtensionSidebarActionDetails",
+      "origin": "shape-from-main"
+    },
+    {
+      "citations": [],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionSidebarActionSetIconDetails",
+      "kind": "dictionary",
+      "member": "WebExtensionSidebarActionSetIconDetails",
+      "origin": "shape-from-main"
+    },
+    {
+      "citations": [],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionSidebarActionSetPanelDetails",
+      "kind": "dictionary",
+      "member": "WebExtensionSidebarActionSetPanelDetails",
+      "origin": "shape-from-main"
+    },
+    {
+      "citations": [],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionSidebarActionSetTitleDetails",
+      "kind": "dictionary",
+      "member": "WebExtensionSidebarActionSetTitleDetails",
+      "origin": "shape-from-main"
+    },
+    {
+      "citations": [],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionStorageAccessOptions",
+      "kind": "dictionary",
+      "member": "WebExtensionStorageAccessOptions",
+      "origin": "shape-from-main"
+    },
+    {
+      "citations": [],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionStorageChange",
+      "kind": "dictionary",
+      "member": "WebExtensionStorageChange",
+      "origin": "shape-from-main"
+    },
+    {
+      "citations": [],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionTab",
+      "kind": "dictionary",
+      "member": "WebExtensionTab",
+      "origin": "shape-from-main"
+    },
+    {
+      "citations": [],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionTabCreateProperties",
+      "kind": "dictionary",
+      "member": "WebExtensionTabCreateProperties",
+      "origin": "shape-from-main"
+    },
+    {
+      "citations": [],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionTabMutedInfo",
+      "kind": "dictionary",
+      "member": "WebExtensionTabMutedInfo",
+      "origin": "shape-from-main"
+    },
+    {
+      "citations": [],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionViewFilter",
+      "kind": "dictionary",
+      "member": "WebExtensionViewFilter",
+      "origin": "shape-from-main"
+    },
+    {
+      "citations": [],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionWebNavigationGetAllFramesDetails",
+      "kind": "dictionary",
+      "member": "WebExtensionWebNavigationGetAllFramesDetails",
+      "origin": "shape-from-main"
+    },
+    {
+      "citations": [],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionWebNavigationGetFrameDetails",
+      "kind": "dictionary",
+      "member": "WebExtensionWebNavigationGetFrameDetails",
+      "origin": "shape-from-main"
+    },
+    {
+      "citations": [],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionWebRequestDetails",
+      "kind": "dictionary",
+      "member": "WebExtensionWebRequestDetails",
+      "origin": "shape-from-main"
+    },
+    {
+      "citations": [],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionWebRequestFilter",
+      "kind": "dictionary",
+      "member": "WebExtensionWebRequestFilter",
+      "origin": "shape-from-main"
+    },
+    {
+      "citations": [],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionWindow",
+      "kind": "dictionary",
+      "member": "WebExtensionWindow",
+      "origin": "shape-from-main"
+    },
+    {
+      "citations": [],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionWindowCreateData",
+      "kind": "dictionary",
+      "member": "WebExtensionWindowCreateData",
+      "origin": "shape-from-main"
+    },
+    {
+      "citations": [],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionWindowGetInfo",
+      "kind": "dictionary",
+      "member": "WebExtensionWindowGetInfo",
+      "origin": "shape-from-main"
+    },
+    {
+      "citations": [],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionWindowUpdateInfo",
+      "kind": "dictionary",
+      "member": "WebExtensionWindowUpdateInfo",
+      "origin": "shape-from-main"
     },
     {
       "citations": [
@@ -3958,9 +4561,9 @@
       "citations": [
         {
           "absent": false,
-          "line": 91,
+          "line": 95,
           "path": "Source/WebKit/WebProcess/Extensions/API/Cocoa/WebExtensionAPIExtensionCocoa.mm",
-          "quote": "if (name == \"getURL\"_s)\n        return !context->supportsManifestVersion(3);"
+          "quote": "if (name == \"getURL\"_s)\n        return !extensionContext().supportsManifestVersion(3);"
         }
       ],
       "declarations": [],
@@ -4433,76 +5036,40 @@
       "origin": "override"
     },
     {
-      "citations": [
-        {
-          "absent": false,
-          "line": 56,
-          "path": "Source/WebKit/WebProcess/Extensions/Interfaces/WebExtensionAPIOffscreen.idl",
-          "quote": "[RaisesException] void createDocument([NSDictionary] any options, [Optional, CallbackHandler] function callback);"
-        }
-      ],
-      "declarations": [
-        "export function createDocument(options: { url: string; justification: string; reasons: string[] }, callback: () => void): void;",
-        "export function createDocument(options: { url: string; justification: string; reasons: string[] }): Promise<void>;"
-      ],
-      "idl": {
-        "endLine": 56,
-        "line": 56,
-        "path": "Source/WebKit/WebProcess/Extensions/Interfaces/WebExtensionAPIOffscreen.idl",
-        "quote": "[RaisesException] void createDocument([NSDictionary] any options, [Optional, CallbackHandler] function callback)"
-      },
+      "citations": [],
+      "declarations": [],
+      "idl": null,
       "interface": "WebExtensionAPIOffscreen",
       "kind": "operation",
       "member": "createDocument",
-      "origin": "operation-signature"
+      "origin": "unshipped"
     },
     {
-      "citations": [
-        {
-          "absent": false,
-          "line": 57,
-          "path": "Source/WebKit/WebProcess/Extensions/Interfaces/WebExtensionAPIOffscreen.idl",
-          "quote": "void closeDocument([Optional, CallbackHandler] function callback);"
-        }
-      ],
-      "declarations": [
-        "export function closeDocument(callback: () => void): void;",
-        "export function closeDocument(): Promise<void>;"
-      ],
-      "idl": {
-        "endLine": 57,
-        "line": 57,
-        "path": "Source/WebKit/WebProcess/Extensions/Interfaces/WebExtensionAPIOffscreen.idl",
-        "quote": "void closeDocument([Optional, CallbackHandler] function callback)"
-      },
+      "citations": [],
+      "declarations": [],
+      "idl": null,
       "interface": "WebExtensionAPIOffscreen",
       "kind": "operation",
       "member": "closeDocument",
-      "origin": "operation-signature"
+      "origin": "unshipped"
     },
     {
-      "citations": [
-        {
-          "absent": false,
-          "line": 58,
-          "path": "Source/WebKit/WebProcess/Extensions/Interfaces/WebExtensionAPIOffscreen.idl",
-          "quote": "void hasDocument([Optional, CallbackHandler] function callback);"
-        }
-      ],
-      "declarations": [
-        "export function hasDocument(callback: (result: boolean) => void): void;",
-        "export function hasDocument(): Promise<boolean>;"
-      ],
-      "idl": {
-        "endLine": 58,
-        "line": 58,
-        "path": "Source/WebKit/WebProcess/Extensions/Interfaces/WebExtensionAPIOffscreen.idl",
-        "quote": "void hasDocument([Optional, CallbackHandler] function callback)"
-      },
+      "citations": [],
+      "declarations": [],
+      "idl": null,
       "interface": "WebExtensionAPIOffscreen",
       "kind": "operation",
       "member": "hasDocument",
-      "origin": "operation-signature"
+      "origin": "unshipped"
+    },
+    {
+      "citations": [],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionAPIOffscreen",
+      "kind": "interface",
+      "member": "WebExtensionAPIOffscreen",
+      "origin": "unshipped"
     },
     {
       "citations": [
@@ -4947,27 +5514,13 @@
       "origin": "operation-signature"
     },
     {
-      "citations": [
-        {
-          "absent": false,
-          "line": 62,
-          "path": "Source/WebKit/WebProcess/Extensions/Interfaces/WebExtensionAPIRuntime.idl",
-          "quote": "[RaisesException] DOMString getDocumentId(any target);"
-        }
-      ],
-      "declarations": [
-        "export function getDocumentId(target: globalThis.Window | globalThis.HTMLIFrameElement | globalThis.HTMLFrameElement): string;"
-      ],
-      "idl": {
-        "endLine": 62,
-        "line": 62,
-        "path": "Source/WebKit/WebProcess/Extensions/Interfaces/WebExtensionAPIRuntime.idl",
-        "quote": "[RaisesException] DOMString getDocumentId(any target)"
-      },
+      "citations": [],
+      "declarations": [],
+      "idl": null,
       "interface": "WebExtensionAPIRuntime",
       "kind": "operation",
       "member": "getDocumentId",
-      "origin": "operation-signature"
+      "origin": "unshipped"
     },
     {
       "citations": [
@@ -5188,33 +5741,13 @@
       "origin": "operation-signature"
     },
     {
-      "citations": [
-        {
-          "absent": false,
-          "line": 73,
-          "path": "Source/WebKit/WebProcess/Extensions/Interfaces/WebExtensionAPIScripting.idl",
-          "quote": "[ImplementedAs=executionWorld] readonly attribute any ExecutionWorld;"
-        },
-        {
-          "absent": false,
-          "line": 157,
-          "path": "Source/WebKit/WebProcess/Extensions/API/Cocoa/WebExtensionAPIScriptingCocoa.mm",
-          "quote": "static NSDictionary *worlds = @{ @\"ISOLATED\": @\"ISOLATED\", @\"MAIN\": @\"MAIN\", };"
-        }
-      ],
-      "declarations": [
-        "export const ExecutionWorld: { readonly ISOLATED: \"ISOLATED\"; readonly MAIN: \"MAIN\" };"
-      ],
-      "idl": {
-        "endLine": 73,
-        "line": 73,
-        "path": "Source/WebKit/WebProcess/Extensions/Interfaces/WebExtensionAPIScripting.idl",
-        "quote": "[ImplementedAs=executionWorld] readonly attribute any ExecutionWorld"
-      },
+      "citations": [],
+      "declarations": [],
+      "idl": null,
       "interface": "WebExtensionAPIScripting",
       "kind": "attribute",
       "member": "ExecutionWorld",
-      "origin": "override"
+      "origin": "unshipped"
     },
     {
       "citations": [
@@ -6180,9 +6713,9 @@
       "citations": [
         {
           "absent": false,
-          "line": 577,
+          "line": 613,
           "path": "Source/WebKit/WebProcess/Extensions/API/Cocoa/WebExtensionAPITabsCocoa.mm",
-          "quote": "static NeverDestroyed<HashSet<AtomString>> removedInManifestVersion3 { HashSet { AtomString(\"executeScript\"_s), AtomString(\"getSelected\"_s), AtomString(\"insertCSS\"_s), AtomString(\"removeCSS\"_s) } };\n    if (removedInManifestVersion3.get().contains(name))\n        return !context->supportsManifestVersion(3);"
+          "quote": "static NeverDestroyed<HashSet<AtomString>> removedInManifestVersion3 { HashSet { AtomString(\"executeScript\"_s), AtomString(\"getSelected\"_s), AtomString(\"insertCSS\"_s), AtomString(\"removeCSS\"_s) } };\n    if (removedInManifestVersion3.get().contains(name))\n        return !extensionContext().supportsManifestVersion(3);"
         }
       ],
       "declarations": [],
@@ -6249,28 +6782,13 @@
       "origin": "operation-signature"
     },
     {
-      "citations": [
-        {
-          "absent": false,
-          "line": 86,
-          "path": "Source/WebKit/WebProcess/Extensions/Interfaces/WebExtensionAPITabs.idl",
-          "quote": "[RaisesException] void move([NSObject] any tabIDs, [NSDictionary] any properties, [Optional, CallbackHandler] function callback);"
-        }
-      ],
-      "declarations": [
-        "export function move(tabIDs: number | number[], properties: { index: number; windowId?: number }, callback: (result: browser.Tab | browser.Tab[]) => void): void;",
-        "export function move(tabIDs: number | number[], properties: { index: number; windowId?: number }): Promise<browser.Tab | browser.Tab[]>;"
-      ],
-      "idl": {
-        "endLine": 86,
-        "line": 86,
-        "path": "Source/WebKit/WebProcess/Extensions/Interfaces/WebExtensionAPITabs.idl",
-        "quote": "[RaisesException] void move([NSObject] any tabIDs, [NSDictionary] any properties, [Optional, CallbackHandler] function callback)"
-      },
+      "citations": [],
+      "declarations": [],
+      "idl": null,
       "interface": "WebExtensionAPITabs",
       "kind": "operation",
       "member": "move",
-      "origin": "operation-signature"
+      "origin": "unshipped"
     },
     {
       "citations": [
@@ -6507,9 +7025,9 @@
       "citations": [
         {
           "absent": false,
-          "line": 577,
+          "line": 613,
           "path": "Source/WebKit/WebProcess/Extensions/API/Cocoa/WebExtensionAPITabsCocoa.mm",
-          "quote": "static NeverDestroyed<HashSet<AtomString>> removedInManifestVersion3 { HashSet { AtomString(\"executeScript\"_s), AtomString(\"getSelected\"_s), AtomString(\"insertCSS\"_s), AtomString(\"removeCSS\"_s) } };\n    if (removedInManifestVersion3.get().contains(name))\n        return !context->supportsManifestVersion(3);"
+          "quote": "static NeverDestroyed<HashSet<AtomString>> removedInManifestVersion3 { HashSet { AtomString(\"executeScript\"_s), AtomString(\"getSelected\"_s), AtomString(\"insertCSS\"_s), AtomString(\"removeCSS\"_s) } };\n    if (removedInManifestVersion3.get().contains(name))\n        return !extensionContext().supportsManifestVersion(3);"
         }
       ],
       "declarations": [],
@@ -6528,9 +7046,9 @@
       "citations": [
         {
           "absent": false,
-          "line": 577,
+          "line": 613,
           "path": "Source/WebKit/WebProcess/Extensions/API/Cocoa/WebExtensionAPITabsCocoa.mm",
-          "quote": "static NeverDestroyed<HashSet<AtomString>> removedInManifestVersion3 { HashSet { AtomString(\"executeScript\"_s), AtomString(\"getSelected\"_s), AtomString(\"insertCSS\"_s), AtomString(\"removeCSS\"_s) } };\n    if (removedInManifestVersion3.get().contains(name))\n        return !context->supportsManifestVersion(3);"
+          "quote": "static NeverDestroyed<HashSet<AtomString>> removedInManifestVersion3 { HashSet { AtomString(\"executeScript\"_s), AtomString(\"getSelected\"_s), AtomString(\"insertCSS\"_s), AtomString(\"removeCSS\"_s) } };\n    if (removedInManifestVersion3.get().contains(name))\n        return !extensionContext().supportsManifestVersion(3);"
         }
       ],
       "declarations": [],
@@ -6549,9 +7067,9 @@
       "citations": [
         {
           "absent": false,
-          "line": 577,
+          "line": 613,
           "path": "Source/WebKit/WebProcess/Extensions/API/Cocoa/WebExtensionAPITabsCocoa.mm",
-          "quote": "static NeverDestroyed<HashSet<AtomString>> removedInManifestVersion3 { HashSet { AtomString(\"executeScript\"_s), AtomString(\"getSelected\"_s), AtomString(\"insertCSS\"_s), AtomString(\"removeCSS\"_s) } };\n    if (removedInManifestVersion3.get().contains(name))\n        return !context->supportsManifestVersion(3);"
+          "quote": "static NeverDestroyed<HashSet<AtomString>> removedInManifestVersion3 { HashSet { AtomString(\"executeScript\"_s), AtomString(\"getSelected\"_s), AtomString(\"insertCSS\"_s), AtomString(\"removeCSS\"_s) } };\n    if (removedInManifestVersion3.get().contains(name))\n        return !extensionContext().supportsManifestVersion(3);"
         }
       ],
       "declarations": [],
@@ -7914,9 +8432,9 @@
       "citations": [
         {
           "absent": false,
-          "line": 90,
-          "path": "Source/WebKit/WebProcess/Extensions/API/WebExtensionAPINamespace.cpp",
-          "quote": "if (name == \"browserAction\"_s)\n        return !extensionContext->supportsManifestVersion(3) && doesDictionaryExist(extensionContext->manifest(), \"browser_action\"_s);"
+          "line": 67,
+          "path": "Source/WebKit/WebProcess/Extensions/API/Cocoa/WebExtensionAPINamespaceCocoa.mm",
+          "quote": "if (name == \"browserAction\"_s)\n        return !extensionContext->supportsManifestVersion(3) && objectForKey<NSDictionary>(extensionContext->manifest(), @\"browser_action\", false);"
         }
       ],
       "declarations": [],
@@ -7927,12 +8445,21 @@
       "origin": "mv3-removed"
     },
     {
+      "citations": [],
+      "declarations": [],
+      "idl": null,
+      "interface": "WebExtensionAPINamespace",
+      "kind": "attribute",
+      "member": "offscreen",
+      "origin": "absent-at-ref"
+    },
+    {
       "citations": [
         {
           "absent": false,
-          "line": 109,
-          "path": "Source/WebKit/WebProcess/Extensions/API/WebExtensionAPINamespace.cpp",
-          "quote": "if (name == \"pageAction\"_s)\n        return !extensionContext->supportsManifestVersion(3) && doesDictionaryExist(extensionContext->manifest(), \"page_action\"_s);"
+          "line": 86,
+          "path": "Source/WebKit/WebProcess/Extensions/API/Cocoa/WebExtensionAPINamespaceCocoa.mm",
+          "quote": "if (name == \"pageAction\"_s)\n        return !extensionContext->supportsManifestVersion(3) && objectForKey<NSDictionary>(extensionContext->manifest(), @\"page_action\", false);"
         }
       ],
       "declarations": [],
@@ -7945,5 +8472,8 @@
   ],
   "ref": "0136fa2b7cf669ab6bc8e715727e6a78bf5f24ba",
   "repository": "WebKit/WebKit",
+  "ship_ref": "WebKit-7624.1.16",
+  "ship_sha": "5435cedbe5140d4952a0b3b893ffca13f75fbede",
+  "ship_version": "26.4",
   "source": "WebKit/WebKit@0136fa2b7cf669ab6bc8e715727e6a78bf5f24ba"
 }

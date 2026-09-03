@@ -1,0 +1,152 @@
+name: Safari release
+
+on:
+  repository_dispatch:
+    types: [safari-stable-released]
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: WebKit ref to regenerate at (tag or commit)
+        required: true
+      safari_version:
+        description: Safari version, used in the branch name and PR title
+        required: true
+
+jobs:
+  regenerate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        run: npm ci
+
+      # repository_dispatch carries the ref in client_payload.tag (may be
+      # absent); workflow_dispatch always carries it via the `ref` input.
+      - name: Resolve ref
+        id: resolve
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            REF="${{ inputs.ref }}"
+            SAFARI_VERSION="${{ inputs.safari_version }}"
+            BUILD=""
+            RELEASED=""
+            TIER=""
+            FAMILY=""
+            if [ -z "$REF" ]; then
+              echo "::error::the ref input is required for a manual dispatch"
+              exit 1
+            fi
+            if [ -z "$SAFARI_VERSION" ]; then
+              echo "::error::the safari_version input is required for a manual dispatch"
+              exit 1
+            fi
+          else
+            REF="${{ github.event.client_payload.tag }}"
+            SAFARI_VERSION="${{ github.event.client_payload.safari_version }}"
+            BUILD="${{ github.event.client_payload.build }}"
+            RELEASED="${{ github.event.client_payload.released }}"
+            TIER="${{ github.event.client_payload.tier }}"
+            FAMILY="${{ github.event.client_payload.family }}"
+            if [ -z "$REF" ]; then
+              echo "::error::could not resolve a WebKit ref for Safari $SAFARI_VERSION (build $BUILD, released $RELEASED, family $FAMILY)"
+              echo "::error::run manually once the ref is known:"
+              echo "gh workflow run safari-release.yml -R patrickkettner/safari-webextension-types -f ref=<WebKit ref> -f safari_version=<version>"
+              exit 1
+            fi
+            if [ -z "$SAFARI_VERSION" ]; then
+              echo "::error::could not resolve a Safari version for WebKit ref $REF; the ship filter needs one"
+              exit 1
+            fi
+          fi
+          echo "ref=$REF" >> "$GITHUB_OUTPUT"
+          echo "safari_version=$SAFARI_VERSION" >> "$GITHUB_OUTPUT"
+          echo "build=$BUILD" >> "$GITHUB_OUTPUT"
+          echo "released=$RELEASED" >> "$GITHUB_OUTPUT"
+          echo "tier=$TIER" >> "$GITHUB_OUTPUT"
+          echo "family=$FAMILY" >> "$GITHUB_OUTPUT"
+
+      - name: Regenerate declarations
+        run: |
+          python3 scripts/generate.py \
+            --ship-ref "${{ steps.resolve.outputs.ref }}" \
+            --ship-version "${{ steps.resolve.outputs.safari_version }}"
+
+      - name: Typecheck declarations
+        run: npm test
+
+      - name: Prove every gate can go red
+        run: npm run test:red
+
+      - name: Test MV3 gate derivation
+        run: npm run test:mv3-gates
+
+      - name: Check for a diff
+        id: diff
+        run: |
+          if git diff --quiet -- index.d.ts provenance.json; then
+            echo "::notice::regeneration at ${{ steps.resolve.outputs.ref }} produced no change; not opening a PR"
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Open pull request
+        if: steps.diff.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          REF="${{ steps.resolve.outputs.ref }}"
+          SAFARI_VERSION="${{ steps.resolve.outputs.safari_version }}"
+          BUILD="${{ steps.resolve.outputs.build }}"
+          RELEASED="${{ steps.resolve.outputs.released }}"
+          TIER="${{ steps.resolve.outputs.tier }}"
+          BRANCH="safari/${SAFARI_VERSION}"
+          SHA=$(python3 -c "import json; print(json.load(open('provenance.json'))['ship_sha'])")
+          DIFFSTAT=$(git diff --stat -- index.d.ts provenance.json)
+          TITLE="Ship filter for Safari ${SAFARI_VERSION} (${REF})"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH"
+          git add index.d.ts provenance.json
+          git commit -m "$TITLE"
+          git push -f origin "$BRANCH"
+
+          # A PR opened with GITHUB_TOKEN gets no CI run of its own; the PR
+          # body says so and the gates already ran in this job.
+          BODY_FILE=$(mktemp)
+          {
+            printf 'Regenerated at WebKit ref `%s`, resolved to `%s`.\n\n' "$REF" "$SHA"
+            [ -n "$BUILD" ] && printf 'Build: %s\n' "$BUILD"
+            [ -n "$RELEASED" ] && printf 'Released: %s\n' "$RELEASED"
+            [ -n "$TIER" ] && printf 'Tier: %s\n' "$TIER"
+            printf '\n%s\n\n' "$DIFFSTAT"
+            printf 'CI does not run automatically on a PR opened by GITHUB_TOKEN. The gates\n'
+            printf '(npm test, npm run test:red, npm run test:mv3-gates) already ran in this\n'
+            printf 'workflow before this PR was opened; re-run CI on this PR, or push a commit\n'
+            printf 'to it, before merging. This PR does not auto-merge.\n'
+          } > "$BODY_FILE"
+
+          EXISTING_PR=$(gh pr list --head "$BRANCH" --json number --jq '.[0].number' || echo "")
+
+          if [ -n "$EXISTING_PR" ]; then
+            gh pr edit "$EXISTING_PR" --title "$TITLE" --body-file "$BODY_FILE"
+          else
+            gh pr create --title "$TITLE" --body-file "$BODY_FILE"
+          fi

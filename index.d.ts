@@ -807,15 +807,6 @@ declare namespace browser {
         export const onButtonClicked: events.Event<(...args: unknown[]) => void>;
     }
 
-    export namespace offscreen {
-        export function createDocument(options: { url: string; justification: string; reasons: string[] }, callback: () => void): void;
-        export function createDocument(options: { url: string; justification: string; reasons: string[] }): Promise<void>;
-        export function closeDocument(callback: () => void): void;
-        export function closeDocument(): Promise<void>;
-        export function hasDocument(callback: (result: boolean) => void): void;
-        export function hasDocument(): Promise<boolean>;
-    }
-
     export namespace permissions {
         export const onAdded: events.Event<(permissions: browser.Permissions) => void>;
         export const onRemoved: events.Event<(permissions: browser.Permissions) => void>;
@@ -842,7 +833,6 @@ declare namespace browser {
         export function getManifest(): Record<string, unknown>;
         export function getVersion(): string;
         export function getFrameId(target: globalThis.Window | globalThis.HTMLIFrameElement | globalThis.HTMLFrameElement): number;
-        export function getDocumentId(target: globalThis.Window | globalThis.HTMLIFrameElement | globalThis.HTMLFrameElement): string;
         export function getPlatformInfo(callback: (result: browser.PlatformInfo) => void): void;
         export function getPlatformInfo(): Promise<browser.PlatformInfo>;
         export function getBackgroundPage(callback: (result: globalThis.Window | null) => void): void;
@@ -866,7 +856,6 @@ declare namespace browser {
     }
 
     export namespace scripting {
-        export const ExecutionWorld: { readonly ISOLATED: "ISOLATED"; readonly MAIN: "MAIN" };
         export function executeScript(details: browser.ScriptInjection, callback: (result: browser.InjectionResult[]) => void): void;
         export function executeScript(details: browser.ScriptInjection): Promise<browser.InjectionResult[]>;
         export function insertCSS(details: browser.CSSInjection, callback: () => void): void;
@@ -952,8 +941,6 @@ declare namespace browser {
         export function update(tabID: number, properties: browser.TabUpdateOptions): Promise<browser.Tab>;
         export function update(properties: browser.TabUpdateOptions, callback: (result: browser.Tab) => void): void;
         export function update(properties: browser.TabUpdateOptions): Promise<browser.Tab>;
-        export function move(tabIDs: number | number[], properties: { index: number; windowId?: number }, callback: (result: browser.Tab | browser.Tab[]) => void): void;
-        export function move(tabIDs: number | number[], properties: { index: number; windowId?: number }): Promise<browser.Tab | browser.Tab[]>;
         export function remove(tabIDs: number | number[], callback: () => void): void;
         export function remove(tabIDs: number | number[]): Promise<void>;
         export function reload(tabID: number, properties: { bypassCache?: boolean }, callback: () => void): void;
@@ -1085,7 +1072,6 @@ declare namespace chrome {
     export import i18n = browser.i18n;
     export import menus = browser.menus;
     export import notifications = browser.notifications;
-    export import offscreen = browser.offscreen;
     export import permissions = browser.permissions;
     export import runtime = browser.runtime;
     export import scripting = browser.scripting;

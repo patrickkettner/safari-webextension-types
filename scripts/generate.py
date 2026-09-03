@@ -1191,8 +1191,11 @@ INTERFACE_SKIPS = {
 # either shape at the generation ref and returns {name: verbatim gate text}.
 # ---------------------------------------------------------------------------
 
-WEBEXTENSION_API_NAMESPACE_CPP = (
-    'Source/WebKit/WebProcess/Extensions/API/WebExtensionAPINamespace.cpp')
+# Candidate paths for the namespace gate, newest first.
+NAMESPACE_GATE_PATHS = (
+    'Source/WebKit/WebProcess/Extensions/API/WebExtensionAPINamespace.cpp',
+    'Source/WebKit/WebProcess/Extensions/API/Cocoa/WebExtensionAPINamespaceCocoa.mm',
+)
 EXTENSION_COCOA = 'Source/WebKit/WebProcess/Extensions/API/Cocoa/WebExtensionAPIExtensionCocoa.mm'
 
 _MV3_DIRECT_GATE_RE = re.compile(
@@ -3115,10 +3118,24 @@ class Reconciler:
         self.members = []
         self.declared = {}
         self.accounted = set()
+        self.absent_interfaces = set()
 
     def declare(self, iface, kind, name):
         """Registers a parsed member that emission is expected to account for."""
         self.declared.setdefault((iface, name), kind)
+
+    def record_absent_interface(self, iface):
+        """A KNOWN_IDL_FILES entry absent at this revision is recorded as
+        absent-at-ref and never parsed; the revision does not declare it.
+        """
+        self.absent_interfaces.add(iface)
+        self.record(iface, iface, 'interface', 'absent-at-ref', [])
+
+    def absent_namespaces(self):
+        """Root namespaces whose interface is absent at this revision;
+        evidence tables keyed by namespace skip them."""
+        return {ROOT_NAMESPACES[iface] for iface in self.absent_interfaces
+                if iface in ROOT_NAMESPACES}
 
     def record(self, iface, member, kind, origin, lines, cites=(), declaration=None):
         resolved = []
@@ -3217,8 +3234,18 @@ class Reconciler:
                                   f'operation carries no return-side evidence. Cite '
                                   f'its callback->call or its signature, or take '
                                   f'{ns} out of READ_NAMESPACES.')
+        # RETURN_EVIDENCE is checked against what the main ref declares, not
+        # against what was emitted.
+        declared_by_ns = {}
+        for (iface, member), kind in self.declared.items():
+            if kind == 'operation':
+                ns = ROOT_NAMESPACES.get(iface, iface)
+                declared_by_ns.setdefault(ns, set()).add(member)
+        absent = self.absent_namespaces()
         for (ns, op) in sorted(RETURN_EVIDENCE):
-            if op not in by_ns.get(ns, ()):
+            if ns in absent:
+                continue
+            if op not in declared_by_ns.get(ns, ()):
                 errors.append(f'RETURN_EVIDENCE names {ns}.{op}, which the IDL does '
                               f'not declare as an operation.')
         if errors:
@@ -3263,9 +3290,12 @@ class Reconciler:
 
     def check(self):
         errors = []
+        absent_namespaces = self.absent_namespaces()
 
         unused = sorted(set(SIGNATURE_OVERRIDES) - self.used_overrides)
         for iface, member in unused:
+            if iface in self.absent_interfaces:
+                continue
             errors.append(
                 f'SIGNATURE_OVERRIDES[{iface!r}, {member!r}] matched no parsed member. '
                 f'WebKit does not declare it at this revision, or the interface is skipped.'
@@ -3280,6 +3310,8 @@ class Reconciler:
 
         unused_skips = sorted(set(MEMBER_SKIPS) - self.used_skips)
         for iface, member in unused_skips:
+            if iface in self.absent_interfaces:
+                continue
             errors.append(
                 f'MEMBER_SKIPS[{iface!r}, {member!r}] matched no parsed member. '
                 f'The reason it records no longer applies to anything.'
@@ -3287,6 +3319,8 @@ class Reconciler:
 
         unused_empty = sorted(set(CONFIRMED_EMPTY_CALLBACKS) - EMPTY_CALLBACK_USED)
         for ns_name, op_name in unused_empty:
+            if ns_name in absent_namespaces:
+                continue
             errors.append(
                 f'CONFIRMED_EMPTY_CALLBACKS[{ns_name!r}, {op_name!r}] matched no '
                 f'operation. The operation was removed or renamed and this entry '
@@ -3295,6 +3329,8 @@ class Reconciler:
 
         unused_params = sorted(set(PARAMETER_TYPES) - PARAMETER_TYPES_USED)
         for ns_name, op_name, arg_name in unused_params:
+            if ns_name in absent_namespaces:
+                continue
             errors.append(
                 f'PARAMETER_TYPES[{ns_name!r}, {op_name!r}, {arg_name!r}] matched '
                 f'no parameter. The operation was removed or renamed and this '
@@ -3320,14 +3356,17 @@ class Reconciler:
             )
 
 
-def verify_citations(reconciler, resolver):
+def verify_citations(reconciler, resolver, ship_resolver):
     """Re-resolves every citation against the revision being generated from.
 
     Covers the recorded members and the empty-callback table, which would
     otherwise be an attestation: an entry saying an operation calls back with
-    nothing, backed by nobody having checked.
+    nothing, backed by nobody having checked. 'mv3-removed' citations quote
+    the gate text read at the ship ref (see read_mv3_gates), so those alone
+    are re-resolved against ship_resolver instead of the main ref.
     """
     checked = 0
+    absent_namespaces = reconciler.absent_namespaces()
     for (ns_name, op_name, arg_name) in sorted(PARAMETER_TYPES_USED):
         _type, cites = PARAMETER_TYPES[(ns_name, op_name, arg_name)]
         for position, cite in enumerate(cites):
@@ -3345,6 +3384,10 @@ def verify_citations(reconciler, resolver):
                     f'this operation:\n    {cite.quote}')
             checked += 1
     for (ns_name, op_name), cites in sorted(RETURN_EVIDENCE.items()):
+        if ns_name in absent_namespaces:
+            # Nothing was emitted for an absent namespace, so its citations
+            # are not resolved at this revision.
+            continue
         for position, cite in enumerate(cites):
             text = resolver.read(cite.path)
             normalized, _ = normalized_with_lines(text)
@@ -3376,8 +3419,9 @@ def verify_citations(reconciler, resolver):
                 f'the quote until it is unique:\n    {cite.quote}')
         checked += 1
     for entry in reconciler.members:
+        entry_resolver = ship_resolver if entry['origin'] == 'mv3-removed' else resolver
         for cite in entry['citations']:
-            text = resolver.read(cite['path'])
+            text = entry_resolver.read(cite['path'])
             normalized, line_of = normalized_with_lines(text)
             needle = norm_ws(cite['quote'])
             index = normalized.find(needle)
@@ -3386,12 +3430,12 @@ def verify_citations(reconciler, resolver):
                     raise CitationError(
                         f"{entry['interface']}.{entry['member']}: the declaration rests "
                         f"on {cite['quote']!r} being absent from {cite['path']}, but it "
-                        f"appears there at {resolver.describe()} on line {line_of[index]}."
+                        f"appears there at {entry_resolver.describe()} on line {line_of[index]}."
                     )
             elif index < 0:
                 raise CitationError(
                     f"{entry['interface']}.{entry['member']}: cited text is not present "
-                    f"in {cite['path']} at {resolver.describe()}:\n    {cite['quote']}"
+                    f"in {cite['path']} at {entry_resolver.describe()}:\n    {cite['quote']}"
                 )
             elif normalized.count(needle) > 1:
                 raise CitationError(
@@ -3424,7 +3468,7 @@ def interface_members(iface_data):
     )
 
 
-def emit_interface_members(out, sub, iface_data, reconciler, spaces):
+def emit_interface_members(out, sub, iface_data, reconciler, spaces, ship_facts):
     """Emits a sub-interface body. Members come from the override table only."""
     for kind, member in interface_members(iface_data):
         if not sub.covers(member['name']):
@@ -3433,9 +3477,12 @@ def emit_interface_members(out, sub, iface_data, reconciler, spaces):
         override = SIGNATURE_OVERRIDES.get(key)
         if override:
             reconciler.used_overrides.add(key)
-            out.extend(indent(override.lines(), spaces))
-            reconciler.record(sub.iface, member['name'], kind, 'override',
-                              override.sig, override.cites, member.get('declaration'))
+            if ship_facts.declares_member(sub.iface, kind, member['name']):
+                out.extend(indent(override.lines(), spaces))
+                reconciler.record(sub.iface, member['name'], kind, 'override',
+                                  override.sig, override.cites, member.get('declaration'))
+            else:
+                reconciler.record(sub.iface, member['name'], kind, 'unshipped', [])
         elif key in MEMBER_SKIPS:
             reconciler.used_skips.add(key)
             reconciler.record(sub.iface, member['name'], kind, 'skipped', [],
@@ -3443,11 +3490,15 @@ def emit_interface_members(out, sub, iface_data, reconciler, spaces):
 
 
 def emit_namespace_members(out, iface_name, iface_data, ns_name, reconciler, available_dicts,
-                            mv3_removed):
+                            mv3_removed, ship_facts):
     """`mv3_removed` is (path, {op_name: verbatim gate text}) for this
     interface's isPropertyAllowed, or None. An operation named there is
     hidden from every MV3 extension and is skipped, citing the gate that
-    hides it."""
+    hides it.
+
+    Emission is gated on ship_facts. An override or MEMBER_SKIPS entry still
+    counts as used against the main ref.
+    """
     for c in iface_data['constants']:
         key = (iface_name, c['name'])
         override = SIGNATURE_OVERRIDES.get(key)
@@ -3463,9 +3514,12 @@ def emit_namespace_members(out, iface_name, iface_data, ns_name, reconciler, ava
         else:
             lines = [f'export const {c["name"]}: {c["type"]};']
             origin, cites = 'constant-type', (DECLARATION,)
-        out.extend(indent(lines, 8))
-        reconciler.record(iface_name, c['name'], 'constant', origin, lines, cites,
-                          c.get('declaration'))
+        if ship_facts.declares_member(iface_name, 'constant', c['name']):
+            out.extend(indent(lines, 8))
+            reconciler.record(iface_name, c['name'], 'constant', origin, lines, cites,
+                              c.get('declaration'))
+        else:
+            reconciler.record(iface_name, c['name'], 'constant', 'unshipped', [])
 
     for attr in iface_data['attributes']:
         key = (iface_name, attr['name'])
@@ -3488,9 +3542,12 @@ def emit_namespace_members(out, iface_name, iface_data, ns_name, reconciler, ava
             cites = (DECLARATION,)
             if origin.startswith('event-payload:'):
                 cites += EVENT_PAYLOADS[origin.split(':', 1)[1]][1]
-        out.extend(indent(lines, 8))
-        reconciler.record(iface_name, attr['name'], 'attribute', origin, lines, cites,
-                          attr.get('declaration'))
+        if ship_facts.declares_member(iface_name, 'attribute', attr['name']):
+            out.extend(indent(lines, 8))
+            reconciler.record(iface_name, attr['name'], 'attribute', origin, lines, cites,
+                              attr.get('declaration'))
+        else:
+            reconciler.record(iface_name, attr['name'], 'attribute', 'unshipped', [])
 
     for op in iface_data['operations']:
         key = (iface_name, op['name'])
@@ -3513,13 +3570,95 @@ def emit_namespace_members(out, iface_name, iface_data, ns_name, reconciler, ava
         else:
             lines, origin = derive_operation_lines(ns_name, op, available_dicts)
             cites = (DECLARATION,)
-        out.extend(indent(lines, 8))
-        reconciler.record(iface_name, op['name'], 'operation', origin, lines, cites,
-                          op.get('declaration'))
+        if ship_facts.declares_member(iface_name, 'operation', op['name']):
+            out.extend(indent(lines, 8))
+            reconciler.record(iface_name, op['name'], 'operation', origin, lines, cites,
+                              op.get('declaration'))
+        else:
+            reconciler.record(iface_name, op['name'], 'operation', 'unshipped', [])
+
+
+class ShipFacts:
+    """Existence facts read from the WebKit tag of the last shipped Safari.
+
+    Shapes and evidence still come from --ref; this only answers whether a
+    name is declared at all. `ifaces` maps an interface name to its parsed
+    attribute/operation/constant name sets; `dicts` and `enums` map a
+    dictionary or enum name to its parsed member/value name set.
+    """
+
+    def __init__(self, ref, sha, version, ifaces, dicts, enums):
+        self.ref = ref
+        self.sha = sha
+        self.version = version
+        self.ifaces = ifaces
+        self.dicts = dicts
+        self.enums = enums
+
+    def declares_interface(self, iface_name):
+        return iface_name in self.ifaces
+
+    def declares_member(self, iface_name, kind, member_name):
+        members = self.ifaces.get(iface_name)
+        return members is not None and member_name in members[kind + 's']
+
+    def declares_dict(self, dict_name):
+        return dict_name in self.dicts
+
+    def declares_dict_member(self, dict_name, member_name):
+        members = self.dicts.get(dict_name)
+        return members is not None and member_name in members
+
+    def declares_enum(self, enum_name):
+        return enum_name in self.enums
+
+    def declares_enum_value(self, enum_name, value):
+        values = self.enums.get(enum_name)
+        return values is not None and value in values
+
+
+def compute_ship_facts(resolver, ref, sha, version) -> ShipFacts:
+    """Parses the ship ref's IDL the same way the main ref is parsed, and
+    keeps only the name sets emission needs to answer "does this exist".
+
+    Reuses check_idl_file_list, so an IDL file the ship ref has and
+    KNOWN_IDL_FILES does not is fatal the same way it is for the main ref. A
+    KNOWN_IDL_FILES entry the ship ref lacks means the whole interface is
+    unshipped, not fetched or parsed.
+    """
+    listed, absent = check_idl_file_list(resolver)
+    if absent:
+        print(f"Ship interface file list matches {resolver.describe()} ({listed} files); "
+              f"{len(absent)} known file(s) unshipped at this revision: "
+              f"{', '.join(absent)}.")
+    else:
+        print(f"Ship interface file list matches {resolver.describe()} ({listed} files).")
+
+    ifaces, dicts, enums = {}, {}, {}
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        tmp_path = pathlib.Path(tmp_dir)
+        fetch_upstream_idls(tmp_path, resolver, absent=absent)
+        for p in sorted(tmp_path.glob('*.idl')):
+            e, d, i = parse_idl_file(p)
+            enums.update(e)
+            dicts.update(d)
+            ifaces.update(i)
+
+    ship_ifaces = {
+        name: {
+            'attributes': {a['name'] for a in data['attributes']},
+            'operations': {o['name'] for o in data['operations']},
+            'constants': {c['name'] for c in data['constants']},
+        }
+        for name, data in ifaces.items()
+    }
+    ship_dicts = {name: set(data['members']) for name, data in dicts.items()}
+    ship_enums = {name: set(values) for name, values in enums.items()}
+    return ShipFacts(ref, sha, version, ship_ifaces, ship_dicts, ship_enums)
 
 
 def generate_dts(idl_dir: pathlib.Path, reconciler: 'Reconciler', source: str,
-                  resolver: 'SourceResolver') -> str:
+                  gate_resolver: 'SourceResolver', ship_facts: 'ShipFacts') -> str:
     PARAM_DERIVATIONS.clear()
     EMPTY_CALLBACK_USED.clear()
     PARAMETER_TYPES_USED.clear()
@@ -3529,20 +3668,30 @@ def generate_dts(idl_dir: pathlib.Path, reconciler: 'Reconciler', source: str,
     all_dicts = {}
     all_ifaces = {}
 
-    # See "Manifest V3 gates" above.
-    def read_mv3_gates(path):
-        text = resolver.read(path)
-        removed = derive_mv3_removed_names(text)
-        if 'supportsManifestVersion(3)' in text and not removed:
-            raise ReconciliationError(
-                f'{path} still guards on supportsManifestVersion(3) but '
-                f'derive_mv3_removed_names matched nothing in it.')
-        return removed
+    # Reads the first candidate path that exists; none existing is fatal.
+    # Gates are read at the ship ref.
+    def read_mv3_gates(paths):
+        errors = []
+        for path in paths:
+            try:
+                text = gate_resolver.read(path)
+            except CitationError as e:
+                errors.append(str(e))
+                continue
+            removed = derive_mv3_removed_names(text)
+            if 'supportsManifestVersion(3)' in text and not removed:
+                raise ReconciliationError(
+                    f'{path} still guards on supportsManifestVersion(3) but '
+                    f'derive_mv3_removed_names matched nothing in it.')
+            return path, removed
+        raise CitationError(
+            'none of the candidate paths for this gate exist at '
+            f'{gate_resolver.describe()}:\n  ' + '\n  '.join(errors))
 
-    mv3_namespace_removed = read_mv3_gates(WEBEXTENSION_API_NAMESPACE_CPP)
+    mv3_namespace_path, mv3_namespace_removed = read_mv3_gates(NAMESPACE_GATE_PATHS)
     mv3_removed_by_iface = {
-        'WebExtensionAPITabs': (TABS_COCOA, read_mv3_gates(TABS_COCOA)),
-        'WebExtensionAPIExtension': (EXTENSION_COCOA, read_mv3_gates(EXTENSION_COCOA)),
+        'WebExtensionAPITabs': read_mv3_gates((TABS_COCOA,)),
+        'WebExtensionAPIExtension': read_mv3_gates((EXTENSION_COCOA,)),
     }
 
     for p in sorted(idl_dir.glob('*.idl')):
@@ -3597,19 +3746,28 @@ def generate_dts(idl_dir: pathlib.Path, reconciler: 'Reconciler', source: str,
             body_indent, member_indent = 8, 12
         else:
             body_indent, member_indent = 4, 8
+        emitted = []
         for sub in entries:
             if sub.iface not in all_ifaces:
                 raise ReconciliationError(
                     f'{sub.iface} is declared as a sub-interface but no parsed IDL '
                     f'file contains it at this revision.'
                 )
+            # Members are recorded even for an unshipped interface, so every
+            # main-ref member has a provenance entry.
+            body = []
+            emit_interface_members(body, sub, all_ifaces[sub.iface],
+                                   reconciler, member_indent, ship_facts)
+            if not ship_facts.declares_interface(sub.iface):
+                reconciler.record(sub.iface, sub.iface, 'interface', 'unshipped', [])
+                continue
+            emitted.append(sub)
             lines.append(f'{" " * body_indent}{sub.decl} {{')
-            emit_interface_members(lines, sub, all_ifaces[sub.iface],
-                                   reconciler, member_indent)
+            lines.extend(body)
             lines.append(f'{" " * body_indent}}}')
         if group_name:
             lines.append('    }')
-        for sub in entries:
+        for sub in emitted:
             if sub.alias:
                 lines.append(f'    {sub.alias}')
         lines.append('')
@@ -3628,20 +3786,50 @@ def generate_dts(idl_dir: pathlib.Path, reconciler: 'Reconciler', source: str,
         lines.append('    }')
         dict_short_names.add(entity.name)
 
-    # Enums from WebIDL
+    # Enums from WebIDL. Undeclared at the ship ref keeps main's declaration,
+    # recorded shape-from-main; declared there loses the values it lacks.
+    dropped_enums = []
     for enum_name, values in sorted(all_enums.items()):
         short_name = enum_name[12:] if enum_name.startswith('WebExtension') else enum_name
-        val_str = ' | '.join(f'"{v}"' for v in values)
+        if not ship_facts.declares_enum(enum_name):
+            reconciler.record(enum_name, enum_name, 'enum', 'shape-from-main', [])
+            kept = values
+        else:
+            kept = [v for v in values if ship_facts.declares_enum_value(enum_name, v)]
+            for v in values:
+                if v not in kept:
+                    reconciler.record(enum_name, v, 'enum-value', 'unshipped', [])
+            if not kept:
+                dropped_enums.append(short_name)
+                reconciler.record(enum_name, enum_name, 'enum', 'unshipped', [])
+                continue
+        val_str = ' | '.join(f'"{v}"' for v in kept)
         lines.append(f'    export type {short_name} = {val_str};')
     lines.append('')
 
-    # Dictionaries from WebIDL
+    # Dictionaries from WebIDL. Undeclared at the ship ref keeps main's
+    # declaration, recorded shape-from-main; declared there loses the members
+    # it lacks; a dictionary with no shipped member is dropped.
+    dropped_dicts = []
     for dict_name, dict_data in sorted(all_dicts.items()):
         short_name = dict_name[12:] if dict_name.startswith('WebExtension') else dict_name
+        ship_has_dict = ship_facts.declares_dict(dict_name)
+        if not ship_has_dict:
+            reconciler.record(dict_name, dict_name, 'dictionary', 'shape-from-main', [])
+        elif dict_data['members'] and not any(
+                ship_facts.declares_dict_member(dict_name, m) for m in dict_data['members']):
+            for m_name in sorted(dict_data['members']):
+                reconciler.record(dict_name, m_name, 'dictionary-member', 'unshipped', [])
+            dropped_dicts.append(short_name)
+            reconciler.record(dict_name, dict_name, 'dictionary', 'unshipped', [])
+            continue
         parent = dict_data['parent']
         parent_str = f' extends {clean_type(parent)}' if parent else ''
         lines.append(f'    export interface {short_name}{parent_str} {{')
         for m_name, m_info in sorted(dict_data['members'].items()):
+            if ship_has_dict and not ship_facts.declares_dict_member(dict_name, m_name):
+                reconciler.record(dict_name, m_name, 'dictionary-member', 'unshipped', [])
+                continue
             corrected = DICTIONARY_MEMBER_CORRECTIONS.get((dict_name, m_name))
             if corrected:
                 DICTIONARY_CORRECTIONS_USED.add((dict_name, m_name))
@@ -3659,15 +3847,25 @@ def generate_dts(idl_dir: pathlib.Path, reconciler: 'Reconciler', source: str,
         emit_group(*group)
 
     # Root Namespaces
+    # Members are recorded even for an unshipped interface, so every main-ref
+    # member has a provenance entry.
+    emitted_namespaces = set()
     for iface_name, iface_data in sorted(all_ifaces.items()):
         if iface_name not in ROOT_NAMESPACES:
             continue
 
         ns_name = ROOT_NAMESPACES[iface_name]
-        lines.append(f'    export namespace {ns_name} {{')
-        emit_namespace_members(lines, iface_name, iface_data, ns_name, reconciler,
+        body = []
+        emit_namespace_members(body, iface_name, iface_data, ns_name, reconciler,
                                dict_short_names,
-                               mv3_removed_by_iface.get(iface_name))
+                               mv3_removed_by_iface.get(iface_name), ship_facts)
+        if not ship_facts.declares_interface(iface_name):
+            reconciler.record(iface_name, iface_name, 'interface', 'unshipped', [])
+            continue
+
+        emitted_namespaces.add(ns_name)
+        lines.append(f'    export namespace {ns_name} {{')
+        lines.extend(body)
         lines.append('    }')
         lines.append('')
 
@@ -3680,14 +3878,31 @@ def generate_dts(idl_dir: pathlib.Path, reconciler: 'Reconciler', source: str,
         if chrome_name in mv3_namespace_removed:
             reconciler.record('WebExtensionAPINamespace', chrome_name, 'attribute',
                               'mv3-removed', [],
-                              cites=(Cite(WEBEXTENSION_API_NAMESPACE_CPP,
+                              cites=(Cite(mv3_namespace_path,
                                           mv3_namespace_removed[chrome_name]),))
+            continue
+        # An alias to a namespace that was not emitted would import nothing.
+        if target.split('.', 1)[1] not in emitted_namespaces:
+            reconciler.record('WebExtensionAPINamespace', chrome_name, 'attribute',
+                              'absent-at-ref', [])
             continue
         lines.append(f'    export import {chrome_name} = {target};')
     lines.append('}')
     lines.append('')
 
-    return '\n'.join(lines)
+    content = '\n'.join(lines)
+
+    # A dropped enum or dictionary must not be referenced as browser.<Name> by
+    # anything emitted. Qualified sub-interface references
+    # (browser.runtime.Port) are caught by npm test.
+    dangling = [name for name in dropped_enums + dropped_dicts
+                if re.search(rf'\bbrowser\.{re.escape(name)}\b', content)]
+    if dangling:
+        raise ReconciliationError(
+            'the ship ref leaves nothing to emit for ' + ', '.join(sorted(dangling)) +
+            ', but an emitted declaration still references it as browser.<Name>.')
+
+    return content
 
 
 # Members WebKit exposes only on storage.sync. isPropertyAllowed answers false
@@ -3771,6 +3986,9 @@ def check_idl_file_list(resolver: SourceResolver):
     Everything downstream reconciles the interfaces inside the files we fetch.
     Without this, a new WebExtensionAPIFoo.idl upstream is not a missing
     interface, it is a namespace nothing ever looks for.
+
+    A file the revision has that the list lacks is fatal. A file the list has
+    that the revision lacks is returned for the caller to record.
     """
     actual = resolver.list_idl_files()
     known = set(KNOWN_IDL_FILES)
@@ -3779,20 +3997,21 @@ def check_idl_file_list(resolver: SourceResolver):
     for name in sorted(actual - known):
         errors.append(f'{name} exists at {resolver.describe()} and is not in '
                       f'KNOWN_IDL_FILES, so nothing reads it.')
-    for name in sorted(known - actual):
-        errors.append(f'{name} is in KNOWN_IDL_FILES and does not exist at '
-                      f'{resolver.describe()}.')
     if errors:
         raise ReconciliationError(
             'the interface file list does not match the revision:\n  '
             + '\n  '.join(errors))
-    return len(actual)
+    return len(actual), sorted(known - actual)
 
 
-def fetch_upstream_idls(target_dir: pathlib.Path, resolver: SourceResolver):
-    """Writes every known IDL file out of the resolver. Fails fast on error."""
+def fetch_upstream_idls(target_dir: pathlib.Path, resolver: SourceResolver, absent=()):
+    """Writes every known IDL file out of the resolver. Fails fast on error.
+
+    `absent` lists files check_idl_file_list found missing; they are not
+    fetched.
+    """
     target_dir.mkdir(parents=True, exist_ok=True)
-    idl_files = sorted(set(KNOWN_IDL_FILES))
+    idl_files = sorted(set(KNOWN_IDL_FILES) - set(absent))
 
     print(f"Reading {len(idl_files)} WebIDL files from {resolver.describe()}...")
     errors = []
@@ -3826,6 +4045,13 @@ def resolve_pr_head(pr_number: int, base_repo: str):
         raise RuntimeError(f"PR #{pr_number} metadata does not contain head repository/sha.")
     print(f"Resolved WebKit PR #{pr_number} -> {head_repo}@{head_sha}")
     return head_repo, head_sha
+
+
+# The WebKit tag of the last shipped Safari. --ref supplies shapes and
+# evidence; this supplies existence. A member --ref declares but this tag does
+# not is left out of the output.
+SHIP_REF = 'WebKit-7624.1.16'
+SHIP_VERSION = '26.4'
 
 
 def main():
@@ -3863,6 +4089,18 @@ def main():
         # generator commit could disagree with nothing recording why.
         default='0136fa2b7cf669ab6bc8e715727e6a78bf5f24ba',
         help='Git commit SHA to read WebKit sources and resolve citations at'
+    )
+    parser.add_argument(
+        '--ship-ref',
+        default=None,
+        help=f'WebKit ref of the last shipped Safari, read for existence only '
+             f'(default: {SHIP_REF}). Required together with --ship-version.'
+    )
+    parser.add_argument(
+        '--ship-version',
+        default=None,
+        help=f'Safari version --ship-ref belongs to, recorded in provenance.json '
+             f'(default: {SHIP_VERSION}). Required together with --ship-ref.'
     )
     parser.add_argument(
         '--cache-dir',
@@ -3903,6 +4141,11 @@ def main():
 
     args = parser.parse_args()
 
+    if bool(args.ship_ref) != bool(args.ship_version):
+        parser.error('--ship-ref and --ship-version must be given together')
+    if args.ship_ref is None:
+        args.ship_ref, args.ship_version = SHIP_REF, SHIP_VERSION
+
     if args.pr:
         args.repo, args.ref = resolve_pr_head(args.pr, args.repo)
 
@@ -3914,15 +4157,37 @@ def main():
         args.ref = resolved
         resolver = build_resolver(args)
 
+    ship_ref = args.ship_ref
+    ship_args = argparse.Namespace(**vars(args))
+    ship_args.ref = args.ship_ref
+    ship_resolver = build_resolver(ship_args)
+    ship_resolved = ship_resolver.resolve_ref()
+    if ship_resolved and ship_resolved != ship_args.ref:
+        print(f"Resolved ship ref {ship_args.ref} to {ship_resolved}.")
+    if ship_resolved:
+        ship_args.ref = ship_resolved
+        ship_resolver = build_resolver(ship_args)
+    ship_sha = ship_args.ref
+
     reconciler = Reconciler()
 
-    listed = check_idl_file_list(resolver)
-    print(f"Interface file list matches {resolver.describe()} ({listed} files).")
+    listed, absent_idl_files = check_idl_file_list(resolver)
+    if absent_idl_files:
+        print(f"Interface file list matches {resolver.describe()} ({listed} files); "
+              f"{len(absent_idl_files)} known file(s) absent at this revision: "
+              f"{', '.join(absent_idl_files)}.")
+        for name in absent_idl_files:
+            reconciler.record_absent_interface(name[:-len('.idl')])
+    else:
+        print(f"Interface file list matches {resolver.describe()} ({listed} files).")
+
+    ship_facts = compute_ship_facts(ship_resolver, ship_ref, ship_sha, args.ship_version)
 
     with tempfile.TemporaryDirectory() as tmp_dir:
         tmp_path = pathlib.Path(tmp_dir)
-        fetch_upstream_idls(tmp_path, resolver)
-        dts_content = generate_dts(tmp_path, reconciler, f'{args.repo}@{args.ref}', resolver)
+        fetch_upstream_idls(tmp_path, resolver, absent=absent_idl_files)
+        dts_content = generate_dts(tmp_path, reconciler, f'{args.repo}@{args.ref}',
+                                   ship_resolver, ship_facts)
 
     reconciler.check()
     evidenced = reconciler.check_read_namespaces_are_read()
@@ -3939,7 +4204,7 @@ def main():
         'takes its return type from the verb table in a namespace nobody has read',
         'Read WebExtensionAPI<Ns>Cocoa.mm, check every operation against its '
         'callback->call, then add the namespace to READ_NAMESPACES.')
-    checked = verify_citations(reconciler, resolver)
+    checked = verify_citations(reconciler, resolver, ship_resolver)
     print(f"Accounted for every line of {len(PARSE_COVERAGE)} IDL file(s) "
           f"({covered} parsed).")
     print(f"Every operation in {len(READ_NAMESPACES)} read namespace(s) carries "
@@ -3973,6 +4238,9 @@ def main():
                        if args.idl_dir else f'{args.repo}@{args.ref}'),
             'repository': args.repo,
             'ref': args.ref,
+            'ship_ref': ship_ref,
+            'ship_sha': ship_sha,
+            'ship_version': args.ship_version,
             'members': reconciler.members,
             'interfaceSkips': INTERFACE_SKIPS,
         }, indent=2, sort_keys=True) + '\n')
