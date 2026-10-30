@@ -34,6 +34,7 @@ longer resolves fails the build.
 import argparse
 import dataclasses
 import json
+import os
 import pathlib
 import re
 import subprocess
@@ -233,6 +234,16 @@ NAMESPACE_PRIMARY_ENTITIES = {
     'webRequest': 'WebRequestDetails',
     'windows': 'Window',
 }
+
+
+def api_headers(**extra):
+    # Anonymous api.github.com calls share the runner IP's 60/hour limit,
+    # which test:red exhausts by rerunning the generator once per gate.
+    headers = {"User-Agent": "safari-webextension-types-generator", **extra}
+    token = os.environ.get("GITHUB_TOKEN")
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+    return headers
 
 
 # ---------------------------------------------------------------------------
@@ -445,8 +456,7 @@ class RemoteResolver(SourceResolver):
         url = f'https://api.github.com/repos/{self.repo}/commits/{self.ref}'
         try:
             req = urllib.request.Request(
-                url, headers={"User-Agent": "safari-webextension-types-generator",
-                              "Accept": "application/vnd.github.sha"})
+                url, headers=api_headers(Accept="application/vnd.github.sha"))
             with urllib.request.urlopen(req, timeout=30) as resp:
                 return resp.read().decode('utf-8').strip()
         except Exception as e:
@@ -456,8 +466,7 @@ class RemoteResolver(SourceResolver):
         url = (f'https://api.github.com/repos/{self.repo}/contents/'
                f'{INTERFACES_DIR}?ref={self.ref}')
         try:
-            req = urllib.request.Request(
-                url, headers={"User-Agent": "safari-webextension-types-generator"})
+            req = urllib.request.Request(url, headers=api_headers())
             with urllib.request.urlopen(req, timeout=30) as resp:
                 entries = json.loads(resp.read().decode('utf-8'))
         except Exception as e:
@@ -4034,9 +4043,7 @@ def fetch_upstream_idls(target_dir: pathlib.Path, resolver: SourceResolver, abse
 def resolve_pr_head(pr_number: int, base_repo: str):
     """Resolves a GitHub PR number to its head repository and ref."""
     api_url = f"https://api.github.com/repos/{base_repo}/pulls/{pr_number}"
-    req = urllib.request.Request(
-        api_url, headers={"User-Agent": "safari-webextension-types-generator"}
-    )
+    req = urllib.request.Request(api_url, headers=api_headers())
     with urllib.request.urlopen(req, timeout=30) as resp:
         pr_data = json.loads(resp.read().decode("utf-8"))
     head_repo = pr_data.get("head", {}).get("repo", {}).get("full_name")

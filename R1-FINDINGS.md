@@ -267,3 +267,12 @@ UPSTREAM-DRAFTS.md.
 - R2 (parse-coverage gate, derived file list) and the rest of R3 are untouched.
   The interface list is now reconciled: an interface WebKit adds fails the build
   until it is given a disposition. The *file* list is still hand-maintained.
+- The ship-filter enum/dictionary loop in `scripts/generate.py` (around
+  `reconciler.record(..., 'shape-from-main', ...)`) emits every parsed enum
+  and dictionary the ship ref does not redeclare, even one no emitted
+  interface member references. `OffscreenReason` and
+  `OffscreenCreateParameters` ship this way although the `offscreen`
+  namespace itself is unshipped, which is why `webext-meta-types` still
+  carries a manual offscreen exclusion after repinning to this package's
+  26.4 ship filter. A shape-from-main enum or dictionary nothing emitted
+  references should not be emitted at all; not started.
