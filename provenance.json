@@ -4561,9 +4561,9 @@
       "citations": [
         {
           "absent": false,
-          "line": 95,
+          "line": 91,
           "path": "Source/WebKit/WebProcess/Extensions/API/Cocoa/WebExtensionAPIExtensionCocoa.mm",
-          "quote": "if (name == \"getURL\"_s)\n        return !extensionContext().supportsManifestVersion(3);"
+          "quote": "if (name == \"getURL\"_s)\n        return !context->supportsManifestVersion(3);"
         }
       ],
       "declarations": [],
@@ -5514,13 +5514,27 @@
       "origin": "operation-signature"
     },
     {
-      "citations": [],
-      "declarations": [],
-      "idl": null,
+      "citations": [
+        {
+          "absent": false,
+          "line": 62,
+          "path": "Source/WebKit/WebProcess/Extensions/Interfaces/WebExtensionAPIRuntime.idl",
+          "quote": "[RaisesException] DOMString getDocumentId(any target);"
+        }
+      ],
+      "declarations": [
+        "export function getDocumentId(target: globalThis.Window | globalThis.HTMLIFrameElement | globalThis.HTMLFrameElement): string;"
+      ],
+      "idl": {
+        "endLine": 62,
+        "line": 62,
+        "path": "Source/WebKit/WebProcess/Extensions/Interfaces/WebExtensionAPIRuntime.idl",
+        "quote": "[RaisesException] DOMString getDocumentId(any target)"
+      },
       "interface": "WebExtensionAPIRuntime",
       "kind": "operation",
       "member": "getDocumentId",
-      "origin": "unshipped"
+      "origin": "operation-signature"
     },
     {
       "citations": [
@@ -6713,9 +6727,9 @@
       "citations": [
         {
           "absent": false,
-          "line": 613,
+          "line": 577,
           "path": "Source/WebKit/WebProcess/Extensions/API/Cocoa/WebExtensionAPITabsCocoa.mm",
-          "quote": "static NeverDestroyed<HashSet<AtomString>> removedInManifestVersion3 { HashSet { AtomString(\"executeScript\"_s), AtomString(\"getSelected\"_s), AtomString(\"insertCSS\"_s), AtomString(\"removeCSS\"_s) } };\n    if (removedInManifestVersion3.get().contains(name))\n        return !extensionContext().supportsManifestVersion(3);"
+          "quote": "static NeverDestroyed<HashSet<AtomString>> removedInManifestVersion3 { HashSet { AtomString(\"executeScript\"_s), AtomString(\"getSelected\"_s), AtomString(\"insertCSS\"_s), AtomString(\"removeCSS\"_s) } };\n    if (removedInManifestVersion3.get().contains(name))\n        return !context->supportsManifestVersion(3);"
         }
       ],
       "declarations": [],
@@ -6782,13 +6796,28 @@
       "origin": "operation-signature"
     },
     {
-      "citations": [],
-      "declarations": [],
-      "idl": null,
+      "citations": [
+        {
+          "absent": false,
+          "line": 86,
+          "path": "Source/WebKit/WebProcess/Extensions/Interfaces/WebExtensionAPITabs.idl",
+          "quote": "[RaisesException] void move([NSObject] any tabIDs, [NSDictionary] any properties, [Optional, CallbackHandler] function callback);"
+        }
+      ],
+      "declarations": [
+        "export function move(tabIDs: number | number[], properties: { index: number; windowId?: number }, callback: (result: browser.Tab | browser.Tab[]) => void): void;",
+        "export function move(tabIDs: number | number[], properties: { index: number; windowId?: number }): Promise<browser.Tab | browser.Tab[]>;"
+      ],
+      "idl": {
+        "endLine": 86,
+        "line": 86,
+        "path": "Source/WebKit/WebProcess/Extensions/Interfaces/WebExtensionAPITabs.idl",
+        "quote": "[RaisesException] void move([NSObject] any tabIDs, [NSDictionary] any properties, [Optional, CallbackHandler] function callback)"
+      },
       "interface": "WebExtensionAPITabs",
       "kind": "operation",
       "member": "move",
-      "origin": "unshipped"
+      "origin": "operation-signature"
     },
     {
       "citations": [
@@ -7025,9 +7054,9 @@
       "citations": [
         {
           "absent": false,
-          "line": 613,
+          "line": 577,
           "path": "Source/WebKit/WebProcess/Extensions/API/Cocoa/WebExtensionAPITabsCocoa.mm",
-          "quote": "static NeverDestroyed<HashSet<AtomString>> removedInManifestVersion3 { HashSet { AtomString(\"executeScript\"_s), AtomString(\"getSelected\"_s), AtomString(\"insertCSS\"_s), AtomString(\"removeCSS\"_s) } };\n    if (removedInManifestVersion3.get().contains(name))\n        return !extensionContext().supportsManifestVersion(3);"
+          "quote": "static NeverDestroyed<HashSet<AtomString>> removedInManifestVersion3 { HashSet { AtomString(\"executeScript\"_s), AtomString(\"getSelected\"_s), AtomString(\"insertCSS\"_s), AtomString(\"removeCSS\"_s) } };\n    if (removedInManifestVersion3.get().contains(name))\n        return !context->supportsManifestVersion(3);"
         }
       ],
       "declarations": [],
@@ -7046,9 +7075,9 @@
       "citations": [
         {
           "absent": false,
-          "line": 613,
+          "line": 577,
           "path": "Source/WebKit/WebProcess/Extensions/API/Cocoa/WebExtensionAPITabsCocoa.mm",
-          "quote": "static NeverDestroyed<HashSet<AtomString>> removedInManifestVersion3 { HashSet { AtomString(\"executeScript\"_s), AtomString(\"getSelected\"_s), AtomString(\"insertCSS\"_s), AtomString(\"removeCSS\"_s) } };\n    if (removedInManifestVersion3.get().contains(name))\n        return !extensionContext().supportsManifestVersion(3);"
+          "quote": "static NeverDestroyed<HashSet<AtomString>> removedInManifestVersion3 { HashSet { AtomString(\"executeScript\"_s), AtomString(\"getSelected\"_s), AtomString(\"insertCSS\"_s), AtomString(\"removeCSS\"_s) } };\n    if (removedInManifestVersion3.get().contains(name))\n        return !context->supportsManifestVersion(3);"
         }
       ],
       "declarations": [],
@@ -7067,9 +7096,9 @@
       "citations": [
         {
           "absent": false,
-          "line": 613,
+          "line": 577,
           "path": "Source/WebKit/WebProcess/Extensions/API/Cocoa/WebExtensionAPITabsCocoa.mm",
-          "quote": "static NeverDestroyed<HashSet<AtomString>> removedInManifestVersion3 { HashSet { AtomString(\"executeScript\"_s), AtomString(\"getSelected\"_s), AtomString(\"insertCSS\"_s), AtomString(\"removeCSS\"_s) } };\n    if (removedInManifestVersion3.get().contains(name))\n        return !extensionContext().supportsManifestVersion(3);"
+          "quote": "static NeverDestroyed<HashSet<AtomString>> removedInManifestVersion3 { HashSet { AtomString(\"executeScript\"_s), AtomString(\"getSelected\"_s), AtomString(\"insertCSS\"_s), AtomString(\"removeCSS\"_s) } };\n    if (removedInManifestVersion3.get().contains(name))\n        return !context->supportsManifestVersion(3);"
         }
       ],
       "declarations": [],
@@ -8472,8 +8501,8 @@
   ],
   "ref": "0136fa2b7cf669ab6bc8e715727e6a78bf5f24ba",
   "repository": "WebKit/WebKit",
-  "ship_ref": "WebKit-7624.1.16",
-  "ship_sha": "5435cedbe5140d4952a0b3b893ffca13f75fbede",
-  "ship_version": "26.4",
+  "ship_ref": "WebKit-7625.2.8",
+  "ship_sha": "7dc13736dc3c83fcb8bb837c0c681eaa3da8b16c",
+  "ship_version": "27.2",
   "source": "WebKit/WebKit@0136fa2b7cf669ab6bc8e715727e6a78bf5f24ba"
 }
