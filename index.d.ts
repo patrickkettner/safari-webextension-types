@@ -833,6 +833,7 @@ declare namespace browser {
         export function getManifest(): Record<string, unknown>;
         export function getVersion(): string;
         export function getFrameId(target: globalThis.Window | globalThis.HTMLIFrameElement | globalThis.HTMLFrameElement): number;
+        export function getDocumentId(target: globalThis.Window | globalThis.HTMLIFrameElement | globalThis.HTMLFrameElement): string;
         export function getPlatformInfo(callback: (result: browser.PlatformInfo) => void): void;
         export function getPlatformInfo(): Promise<browser.PlatformInfo>;
         export function getBackgroundPage(callback: (result: globalThis.Window | null) => void): void;
@@ -941,6 +942,8 @@ declare namespace browser {
         export function update(tabID: number, properties: browser.TabUpdateOptions): Promise<browser.Tab>;
         export function update(properties: browser.TabUpdateOptions, callback: (result: browser.Tab) => void): void;
         export function update(properties: browser.TabUpdateOptions): Promise<browser.Tab>;
+        export function move(tabIDs: number | number[], properties: { index: number; windowId?: number }, callback: (result: browser.Tab | browser.Tab[]) => void): void;
+        export function move(tabIDs: number | number[], properties: { index: number; windowId?: number }): Promise<browser.Tab | browser.Tab[]>;
         export function remove(tabIDs: number | number[], callback: () => void): void;
         export function remove(tabIDs: number | number[]): Promise<void>;
         export function reload(tabID: number, properties: { bypassCache?: boolean }, callback: () => void): void;
