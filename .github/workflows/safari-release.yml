@@ -87,11 +87,16 @@ jobs:
           echo "tier=$TIER" >> "$GITHUB_OUTPUT"
           echo "family=$FAMILY" >> "$GITHUB_OUTPUT"
 
+      # Repins the defaults so CI's plain `npm run build` reproduces this output.
       - name: Regenerate declarations
+        env:
+          SHIP_REF: ${{ steps.resolve.outputs.ref }}
+          SHIP_VERSION: ${{ steps.resolve.outputs.safari_version }}
         run: |
-          python3 scripts/generate.py \
-            --ship-ref "${{ steps.resolve.outputs.ref }}" \
-            --ship-version "${{ steps.resolve.outputs.safari_version }}"
+          sed -i -e "s/^SHIP_REF = .*/SHIP_REF = '$SHIP_REF'/" \
+                 -e "s/^SHIP_VERSION = .*/SHIP_VERSION = '$SHIP_VERSION'/" \
+                 scripts/generate.py
+          python3 scripts/generate.py
 
       - name: Typecheck declarations
         run: npm test
@@ -130,7 +135,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git checkout -b "$BRANCH"
-          git add index.d.ts provenance.json
+          git add index.d.ts provenance.json scripts/generate.py
           git commit -m "$TITLE"
           git push -f origin "$BRANCH"
 

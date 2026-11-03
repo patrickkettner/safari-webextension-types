@@ -4057,8 +4057,8 @@ def resolve_pr_head(pr_number: int, base_repo: str):
 # The WebKit tag of the last shipped Safari. --ref supplies shapes and
 # evidence; this supplies existence. A member --ref declares but this tag does
 # not is left out of the output.
-SHIP_REF = 'WebKit-7624.1.16'
-SHIP_VERSION = '26.4'
+SHIP_REF = 'WebKit-7625.2.8'
+SHIP_VERSION = '27.2'
 
 
 def main():
